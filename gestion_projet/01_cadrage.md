@@ -1,0 +1,34 @@
+# Cadrage :
+- Gestion de projet
+  - Organisation : scrum vs. kanban
+  - Outillage : Jira ?
+- Gestion du code
+  - Set-up GitHub
+  - Fonctionnement pour le développement
+  - Bonnes pratiques (PEP8, etc.)
+- backlog
+  - Architecture
+    - Traitement des données (ingestion -> exposition)
+    - Infrastructure (logique de conteneurisation)
+  - Conteneurisation
+  - CI
+    - Tests de qualité de code
+    - Test de qualité des fonctionnalités (unitest, tests d'intégration, tests de régression)
+  - Source X 
+    - Analyse
+    - Ingestion
+    - Prétraitement
+    - Stockage
+  - Agrégation 
+    - Prétraitement
+    - Stockage
+  - Prédiction
+    - Algorithme ML
+    - Exposition (API)
+    - CD
+  - Visualisation
+    - Connexion
+    - Front-end
+  - Automatisation et monitoring
+    - Automatisation de la pipeline
+    - Monitoring de la pipeline
