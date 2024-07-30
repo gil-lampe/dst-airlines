@@ -6,12 +6,15 @@ from pyspark.sql.types import *
 from pyspark.sql import SparkSession
 
 # Création d'une session Spark
+app_name = "Application"
+reseau_app = "local[*]"
+
 spark = SparkSession\
          .builder\
          .appName(app_name)\
          .master(reseau_app)\
          .getOrCreate()
-sc = spar.sparkContext
+sc = spark.sparkContext
 
 def download_file(url, filename):
     """
@@ -33,8 +36,6 @@ def download_file(url, filename):
 #####################################################################
 
 # Application :
-app_name = "Application"
-reseau_app = "local[*]"
 url_csv = "<URL_TO_CSV>"
 filename = "data.csv"
 # download_file(url_csv, filename)
