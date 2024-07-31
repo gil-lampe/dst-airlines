@@ -161,20 +161,6 @@ def show_distinct_values(df):
         distinct_values = df.select(col_name).distinct().count()
         print(f"Column {col_name} has {distinct_values} distinct values.")
 
-show_distinct_values(raw_data)
-
-
-# REMPLACER UNE VALEUR MANQUANTE PAR LA MODALITE (MODE)
-#####################################################################
-def replace_missing_with_mode(df):
-    string_columns = [col_name for col_name, dtype in df.dtype if dtype == 'string']
-    for col_name in string_columns:
-        mode = df.groupBy(col_name).count().orderBy('count', ascending=False).first()[0]
-        df = df.fillna({col_name: mode})
-    return df 
-
-raw_data = replace_missing_with_mode(raw_data)
-
 
 # REMPLACER LES CARACTÈRES SPÉCIAUX PAR DES ESPACES ET SUPPRIMER LES ESPACES DE DÉBUT ET DE FIN
 ######################################################
@@ -183,8 +169,6 @@ def clean_special_characters(df):
         df = df.withColumn(col_name, regexp_replace(col(col_name), "[^a-zA-Z0-9]", " "))
         df = df.withColumn(col_name, trim(col(col_name)))
     return df
-
-raw_data = clean_special_characters(raw_data)
 
 
 # CONVERTIR LES COLONNES DE DATE
@@ -207,4 +191,3 @@ raw_data = clean_special_characters(raw_data)
 
 # STOP SPARK SESSION
 ######################################################
-spark.stop()
