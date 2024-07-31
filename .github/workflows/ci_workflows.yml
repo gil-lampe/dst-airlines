@@ -1,8 +1,7 @@
 name: PEP8 control via flake8 on Push
-on: 
+on:
   push: # déclanchement lors des push
-    paths:
-      - '*.py' # uniquement sur des fichiers python
+    paths: ['*.py'] # uniquement sur des fichiers python
 
 jobs:
   flake8-lint:
