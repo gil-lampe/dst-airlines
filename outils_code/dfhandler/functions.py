@@ -65,7 +65,7 @@ def get_missing_values(df):
     # (as well as in a date type column)
     for column in columns:
         if df.schema[column].dataType == BooleanType() \
-            or df.schema[column].dataType == DateType():
+           or df.schema[column].dataType == DateType():
             nan_count.append(0)
         else:
             nan_count.append(df.where(isnan(col(column))).count())
@@ -77,8 +77,8 @@ def print_na_table_from_stats(stats):
     """Prints a table with, for each column, the number of null and NaN values
 
     Args:
-        stats (:obj:`list` of :obj:`int`): Statistics 
-        (nb of entries, list of column names, list of nan counts, 
+        stats (:obj:`list` of :obj:`int`): Statistics
+        (nb of entries, list of column names, list of nan counts,
         list of null counts)
     """
     count, columns, nan_count, null_count = stats
@@ -141,7 +141,7 @@ def replace_na(df, column_names, how, nan_or_null="both"):
         raise ValueError("'nan_or_null' parameter should equal to \
                          'nan', 'null' or 'both'.")
     if not isinstance(column_names, list) \
-            and all(isinstance(column_name, str) \
+            and all(isinstance(column_name, str)
                     for column_name in column_names):
         raise ValueError("'column_names' should be a list of strings.")
     cleaned_df = df
@@ -222,7 +222,7 @@ def clean_special_characters(df, subset=[]):
 # CONVERTIR LES COLONNES DE PRIX
 ######################################################
 # $ = monnaie si présente dans le jeu de donnée (€ etc...)
-# raw_data = raw_data.withColumn("price", 
+# raw_data = raw_data.withColumn("price",
 #                                regexp_replace(col("price"), "[$]", "")\
 #   .cast(DoubleType()))
 
