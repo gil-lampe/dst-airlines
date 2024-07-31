@@ -1,13 +1,8 @@
 import urllib.request
 import numpy as np
-from pyspark.sql.functions import col, isnan, isnull, regexp_replace, to_date, lower, length, trim, count, sum, avg, max, min, mean, when
+from pyspark.sql.functions import col, isnan, isnull, regexp_replace, trim, when
 from pyspark.sql.types import *
-from pyspark.sql import SparkSession
 import re
-
-def test_funct(a):
-    print("Hello world")
-    return None
 
 
 def download_file(url, filename):
@@ -19,7 +14,6 @@ def download_file(url, filename):
     """
     urllib.request.urlretrieve(url, filename)
     print("File :", filename, "downloaded successfully.")
-
 
 # RENOMMER LES COLONNES + MINUSCULES :
 #####################################################################
@@ -52,10 +46,14 @@ def rename_col_standard(df):
 
 
 def get_missing_values(df):
-    """Get the null and NaN
+    """Compute the null and NaN statistics in each columns
 
     Args:
-        df (_type_): _description_
+        df (pyspark.sql.DataFrame): Input DataFrame
+
+    Returns:
+        :obj:`list` of :obj:`int`: Statistics 
+        (nb of entries, list of column names, list of nan counts, list of null counts)
     """
     count = df.count()
     columns = df.columns
@@ -67,11 +65,11 @@ def get_missing_values(df):
         else:
             nan_count.append(df.where(isnan(col(column))).count())
     null_count = [df.where(isnull(col(column))).count() for column in columns]
-    return([count, columns, nan_count, null_count])
+    return [count, columns, nan_count, null_count]
 
 
 def print_na_table_from_stats(stats):
-    """Prints nnn
+    """Prints a table with, for each column, the number of 
 
     Args:
         stats (:obj:`list` of :obj:`int`): zzzz
@@ -106,7 +104,7 @@ def print_na_table(df):
     print_na_table_from_stats(get_missing_values(df))
 
 
-#  REMPLACER LES VALEURS MANQUANTES PAR UNE STATISTIQUE AU CHOIX :
+# Calculer les valeurs manquantes
 #####################################################################
 
 
@@ -143,37 +141,52 @@ def replace_na(df, column_names, how, nan_or_null = "both"):
             cleaned_df = cleaned_df.withColumn(column_name, when(isnull(column_name), stat).otherwise(col(column_name)))
     return cleaned_df
 
-
-# SIGNALER LES VALEURS MANQUANTES DANS LES COLONNES STRING
+# IMPRIMER LES VALEURS DISTINCTES DANS CHAQUE COLONNE
 #####################################################################
-def report_missing_values(df):
-    string_columns = [col_name for col_name, dtype in df.dtypes if dtype == 'string']
-    for col_name in string_columns:
-        missing_count = df.filter(isnull(col(col_name)) | (col(col_name) == '')).count()
-        if missing_count > 0:
-            print(f"Column {col_name} has {missing_count} missing values.")
-        else:
-            print(f"Column {col_name} has no missing values.")
-
-report_missing_values(raw_data)
 
 
-# CONSULTER LES VALEURS DISTINCTES DANS CHAQUE COLONNE
-#####################################################################
-def show_distinct_values(df):
+def print_distinct_values(df):
+    """Print number of distinct values contains in each column
+
+    Args:
+        df (pyspark.sql.DataFrame): Input DataFrame
+    """
     for col_name in df.columns:
         distinct_values = df.select(col_name).distinct().count()
         print(f"Column {col_name} has {distinct_values} distinct values.")
 
-
 # REMPLACER LES CARACTÈRES SPÉCIAUX PAR DES ESPACES ET SUPPRIMER LES ESPACES DE DÉBUT ET DE FIN
 ######################################################
-def clean_special_characters(df):
-    for col_name in df.columns:
-        df = df.withColumn(col_name, regexp_replace(col(col_name), "[^a-zA-Z0-9]", " "))
-        df = df.withColumn(col_name, trim(col(col_name)))
-    return df
 
+
+def clean_special_characters(df, subset=[]):
+    """Remove special caracters in columns containing strings
+
+    Args:
+        df (pyspark.sql.DataFrame): Traget dataframe
+        subset (:obj:`list` of :obj:`str`, optional): List of the column names to process, 
+        empty list equals to all string columns. Defaults to [].
+
+    Raises:
+        ValueError: If subset is specified and at least one column is not a string type column, error will be raised
+
+    Returns:
+        pyspark.sql.DataFrame: Resulting DataFramen_
+    """
+    is_subset_specified = True
+
+    if len(subset) == 0:
+        is_subset_specified = False
+        subset = df.columns    
+
+    for col_name, type in df.dtypes:
+        if col_name in subset:
+            if type != "string" and not is_subset_specified:
+                raise ValueError("At least one provided column is not a string type column.")
+            else:
+                df = df.withColumn(col_name, regexp_replace(col(col_name), "[^a-zA-Z0-9]", " "))
+                df = df.withColumn(col_name, trim(col(col_name)))
+    return df
 
 # CONVERTIR LES COLONNES DE DATE
 ######################################################
@@ -185,13 +198,8 @@ def clean_special_characters(df):
 # $ = monnaie si présente dans le jeu de donnée (€ etc...)
 # raw_data = raw_data.withColumn("price", regexp_replace(col("price"), "[$]", "").cast(DoubleType()))
 
-
-
 # ETAPES SUPPLÉMENTAIRES
 ######################################################
 # 1. Détecter et gérer les valeurs aberrantes (outliers)
 # 2. Normaliser ou standardiser les colonnes numériques si nécessaire
 # 3. Encoder les colonnes catégorielles pour les modèles ML
-
-# STOP SPARK SESSION
-######################################################
