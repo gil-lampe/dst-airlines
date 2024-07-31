@@ -67,6 +67,11 @@ def get_missing_values(df):
 
 
 def print_na_table_from_stats(stats):
+    """Prints nnn
+
+    Args:
+        stats (:obj:`list` of :obj:`int`): zzzz
+    """
     count, columns, nan_count, null_count = stats
     count = str(count)
     nan_count = [str(element) for element in nan_count]
