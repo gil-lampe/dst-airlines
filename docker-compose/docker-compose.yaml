@@ -1,0 +1,46 @@
+version: "3.1"
+
+services: 
+# Database MySQL DB relationnelle
+  flights-db:
+    hostname: flights-db
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "password"
+      MYSQL_DATABASE: "flight"
+      MYSQL_USER: "sanou"
+      MYSQL_PASSWORD: "password"
+    ports:
+      - "3306:3306" # "3307:3306"
+    volumes:
+      - flights-db-data:/var/lib/mysql
+  
+# Database Mongo DB non relationnelle
+  weather-db:
+    hostname: weather-db 
+    image: mongo:latest
+    restart: always
+    ports:
+      - "27017:27017" # "27018:27017"
+    volumes:
+      - weather-db-data:/data/lib
+
+# Volumes pour nos données
+volumes:
+  flights-db-data: # {}
+  weather-db-data: # {}
+
+
+# Pour accéder à nos DB :
+# MySQL
+# docker exec -it flights-db mysql -u sanou -p
+# MongoDB
+# docker exec -it weather-db mongo
+
+# Pour supprimer tous les volumes utilisés par nos Dockers :
+# docker volume prune  
+# docker volume rm $(docker volume ls -q)
+
+# Pour supprimer toute trace de nos compartiments Docker :
+# docker rm $(docker ps -a -q)
