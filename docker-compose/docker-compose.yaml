@@ -45,3 +45,5 @@ volumes:
 
 # Pour supprimer toute trace de nos compartiments Docker :
 # docker rm $(docker ps -a -q)
+
+# BIEN JOUE LES GARS
