@@ -37,6 +37,7 @@ volumes:
 # docker exec -it flights-db mysql -u sanou -p
 # MongoDB
 # docker exec -it weather-db mongo
+# mongosh --host localhost --port 27018
 
 # Pour supprimer tous les volumes utilisés par nos Dockers :
 # docker volume prune  
