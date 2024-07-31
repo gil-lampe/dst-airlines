@@ -5,6 +5,10 @@ from pyspark.sql.types import *
 from pyspark.sql import SparkSession
 import re
 
+def test_funct(a):
+    print("Hello world")
+    return None
+
 
 def download_file(url, filename):
     """Download the url's file from a selected path
