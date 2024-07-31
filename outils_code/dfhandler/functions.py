@@ -1,6 +1,7 @@
 import urllib.request
 import numpy as np
-from pyspark.sql.functions import col, isnan, isnull, regexp_replace, trim, when
+from pyspark.sql.functions import col, isnan, isnull, \
+                                  regexp_replace, trim, when
 from pyspark.sql.types import BooleanType, DateType
 import re
 
@@ -21,8 +22,8 @@ def download_file(url, filename):
 
 def rename_col_standard(df):
     """Renames dataframe columns by standards
-    
-    Remove all non alphanumerical caracters, lower them, 
+
+    Remove all non alphanumerical caracters, lower them,
     ensure there is only one space between words
     and replace spaces with underscores
 
@@ -53,14 +54,14 @@ def get_missing_values(df):
         df (pyspark.sql.DataFrame): Input DataFrame
 
     Returns:
-        :obj:`list` of :obj:`int`: Statistics 
-        (nb of entries, list of column names, list of nan counts, 
+        :obj:`list` of :obj:`int`: Statistics
+        (nb of entries, list of column names, list of nan counts,
         list of null counts)
     """
     count = df.count()
     columns = df.columns
     nan_count = []
-    # we can't check for nan in a boolean type column 
+    # we can't check for nan in a boolean type column
     # (as well as in a date type column)
     for column in columns:
         if df.schema[column].dataType == BooleanType() \
@@ -90,9 +91,9 @@ def print_na_table_from_stats(stats):
     line3 = "|" + (max_init-9)*" " + "nan count|"
     line4 = "|" + (max_init-10)*" " + "null count|"
     for i in range(len(columns)):
-        max_column = np.max([len(columns[i]), 
-                        len(nan_count[i]), 
-                        len(null_count[i])])
+        max_column = np.max([len(columns[i]),
+                             len(nan_count[i]),
+                             len(null_count[i])])
         line1 += max_column*"-" + "+"
         line2 += (max_column - len(columns[i]))*" " + columns[i] + "|"
         line3 += (max_column - len(nan_count[i]))*" " + nan_count[i] + "|"
@@ -120,9 +121,9 @@ def replace_na(df, column_names, how, nan_or_null="both"):
     Args:
         df (pyspark.sql.DataFrame): Target DataFrame
         column_names (:obj:`lsit` of :obj:`int`): List of the column to process
-        how (str): Statistics to use to replace na values, 
+        how (str): Statistics to use to replace na values,
         should be "avg", "mode", "median" or "mean"
-        nan_or_null (str, optional): na values to be replaced, 
+        nan_or_null (str, optional): na values to be replaced,
         should be "nan", "null" or "both". Defaults to "both".
 
     Raises:
@@ -138,23 +139,24 @@ def replace_na(df, column_names, how, nan_or_null="both"):
                          'avg', 'mean', 'median' or 'mode'.")
     if nan_or_null not in ('nan', 'null', 'both'):
         raise ValueError("'nan_or_null' parameter should equal to \
-                         'nan', 'null' or 'both'.")   
+                         'nan', 'null' or 'both'.")
     if not isinstance(column_names, list) \
-        and all(isinstance(column_name, str) for column_name in column_names):
+            and all(isinstance(column_name, str) \
+                    for column_name in column_names):
         raise ValueError("'column_names' should be a list of strings.")
     cleaned_df = df
     for column_name in column_names:
         stat_col_name = how + "(" + column_name + ")"
         stat = df.where(~isnan(col(column_name)) & ~isnull(col(column_name)))\
             .agg({column_name: how})\
-                .first()[stat_col_name]
+            .first()[stat_col_name]
         if nan_or_null in ("nan", "both"):
             cleaned_df = cleaned_df.withColumn(
-                column_name, 
+                column_name,
                 when(isnan(column_name), stat).otherwise(col(column_name)))
         if nan_or_null in ("null", "both"):
             cleaned_df = cleaned_df.withColumn(
-                column_name, 
+                column_name,
                 when(isnull(column_name), stat).otherwise(col(column_name)))
     return cleaned_df
 
@@ -197,7 +199,7 @@ def clean_special_characters(df, subset=[]):
 
     if len(subset) == 0:
         is_subset_specified = False
-        subset = df.columns    
+        subset = df.columns
 
     for col_name, type in df.dtypes:
         if col_name in subset:
@@ -206,8 +208,8 @@ def clean_special_characters(df, subset=[]):
                                   is not a string type column.")
             else:
                 df = df.withColumn(
-                    col_name, regexp_replace(col(col_name), 
-                                             "[^a-zA-Z0-9]", 
+                    col_name, regexp_replace(col(col_name),
+                                             "[^a-zA-Z0-9]",
                                              " "))
                 df = df.withColumn(col_name, trim(col(col_name)))
     return df
@@ -220,7 +222,8 @@ def clean_special_characters(df, subset=[]):
 # CONVERTIR LES COLONNES DE PRIX
 ######################################################
 # $ = monnaie si présente dans le jeu de donnée (€ etc...)
-# raw_data = raw_data.withColumn("price", regexp_replace(col("price"), "[$]", "")\
+# raw_data = raw_data.withColumn("price", 
+#                                regexp_replace(col("price"), "[$]", "")\
 #   .cast(DoubleType()))
 
 # ETAPES SUPPLÉMENTAIRES
