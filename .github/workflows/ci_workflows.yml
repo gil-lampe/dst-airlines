@@ -1,7 +1,7 @@
 name: PEP8 control via flake8 on Push
-on:
-  push: # déclanchement lors des push
-    paths: ['*.py'] # uniquement sur des fichiers python
+on: push
+#  push: # déclanchement lors des push
+#    paths: ['*.py'] # uniquement sur des fichiers python
 
 jobs:
   flake8-lint:
@@ -16,7 +16,7 @@ jobs:
       with:
         python-version: "3.11"
         
-    - name: Install pytest and flake8
+    - name: Install flake8
       run: |
         pip install flake8
 
