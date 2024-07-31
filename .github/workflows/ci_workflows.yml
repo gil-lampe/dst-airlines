@@ -1,0 +1,25 @@
+name: PEP8 control via flake8 on Push
+on: 
+  push: # déclanchement lors des push
+    paths:
+      - '*.py' # uniquement sur des fichiers python
+
+jobs:
+  flake8-lint:
+    name: Check tests 
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout on main
+      uses: actions/checkout@v3 # utilisation d'une étape standard de GitHub Actions permettant de cloner le dépôt pour valider son contenu
+
+    - name: Set up Python
+      uses: actions/setup-python@v4 # utilisation d'une action standard de GitHub Actions pour installer python
+      with:
+        python-version: "3.11"
+        
+    - name: Install pytest and flake8
+      run: |
+        pip install flake8
+
+    - name: flake8 Lint
+      uses: py-actions/flake8@v2 # utilisation d'une action préexistante sur la markeplace GitHub permettant de lancer flake8
