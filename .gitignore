@@ -1,3 +1,3 @@
 *.json
 *.csv
-*venv_flightradar24*
+data/flightradar24/venv_flightradar24*
