@@ -13,4 +13,5 @@ python-dotenv
 scikit-learn
 tqdm
 typer
+flatten_json
 -e .

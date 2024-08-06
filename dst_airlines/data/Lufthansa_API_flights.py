@@ -3,6 +3,8 @@ import json
 import os
 from datetime import datetime
 import time
+import pandas as pd
+from flatten_json import flatten
 
 # LUFTHANSA
 # get token
@@ -11,6 +13,34 @@ import time
 API_TOKEN = 's9qtthxz3p2ku9p3pywtc5uj' # Token Gil
 
 URL = "https://api.lufthansa.com/v1"
+
+
+def store_file(file_path, data, debug=False):
+    with open(file_path, 'w') as json_file:
+        json.dump(data, json_file, indent=4)
+        print(f"Données enregistrées dans '{file_path}'.") if debug else None
+
+
+def retrieve_json(file_path, debug=False):
+    try:
+        with open(file_path, 'r') as f:
+            flight_data = json.load(f)
+    except FileNotFoundError:
+        print(f"Le fichier {f} n'a pas été trouvé.") if debug else None
+    except json.JSONDecodeError:
+        print("Erreur de syntaxe dans le fichier JSON.") if debug else None
+    return flight_data
+
+
+def build_data_storage_path(file_name, data_stage):
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = script_dir.split("dst_airlines/")[-2]
+    path = os.path.join(project_root, 'data', data_stage)
+    return os.path.join(path, file_name)
+
+
+def flatten_list_of_dict(dicts):
+    return pd.DataFrame([flatten(d) for d in dicts])
 
 
 def fetch_departing_flights(airport_iata, headers, date='', start_time="00:00", debug=False):
@@ -24,7 +54,9 @@ def fetch_departing_flights(airport_iata, headers, date='', start_time="00:00", 
         debug (bool, optional): Indication to print debug messages. Defaults to False.
 
     Returns:
-        list: list containing each chunk of data, each element is an API call
+        dict: Dictionary containing, a:
+            - "metadata" field containing the request metadata
+            - "data" field, containing answers from the API, each element of the list is an API call
     """
     ###
     # Création d'une fonction interne pour incrémenter l'endpoint de 4h (par défaut)
@@ -39,22 +71,23 @@ def fetch_departing_flights(airport_iata, headers, date='', start_time="00:00", 
         Returns:
             tuple: Tuple composed of a boolean indicating if the incremented time is outranged (> 24h) and the new endpoint
         """
-        range = 4
+        range_length = 4
         start_range = flight_endpoint[-5:]
-        hour_int = int(start_range.split(":")[0])
-        minutes_str = start_range.split(":")[1]
-        new_flight_endpoint = ""
 
-        hour_int += range
+        hour_int = int(start_range.split(":")[0])
+        hour_int += range_length
+        hour_str = "0" + str(hour_int) if hour_int < 10 else str(hour_int)
+
+        minutes_str = start_range.split(":")[1]
+
+        start_time = hour_str + ":" + minutes_str           
+        new_flight_endpoint = flight_endpoint[:-5] + start_time
+
         if hour_int >= 24:
             print(f"Nouveau range dépasse 24h (heure après incrémentation : {hour_int}h)") if debug else None
             outranged = True
             return (outranged, new_flight_endpoint)
         else :
-            hour_str = "0" + str(hour_int) if hour_int < 10 else str(hour_int)
-            start_time = hour_str + ":" + minutes_str           
-            new_flight_endpoint = flight_endpoint[:-5] + start_time
-
             print("Nouvelle heure de début : ", start_time) if debug else None
             print("Nouveau endpoint : ", new_flight_endpoint) if debug else None
             outranged = False
@@ -70,12 +103,21 @@ def fetch_departing_flights(airport_iata, headers, date='', start_time="00:00", 
 
     flight_endpoint =  airport_endpoint + date + "T" + start_time
 
-    flights_data_list = []
     LIMIT = 50 # nombre max par page - l'API ne renvoie pas plus de 50 vols
     offset = 0 # démarre à la 1e page
     total_range_count = 0 # nombre d'éléments dans le range
 
     count = 0
+
+    ###
+    # Structuration du dictionnaire final
+    ###
+    flights_data_dic = {}
+    flights_data_dic["metadata"] = {}
+    flights_data_dic["metadata"]["initial_flight_endpoint"] = flight_endpoint
+    flights_data_dic["metadata"]["time_at_execution"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    flights_data_dic["metadata"]["start_range"] = flight_endpoint[-16:]
+    flights_data_dic["data"] = []
 
     ###
     # Boucle pour parcourir les ranges de 4h puis la pagination des données sur ces ranges
@@ -98,7 +140,7 @@ def fetch_departing_flights(airport_iata, headers, date='', start_time="00:00", 
         if response.status_code == 200:
             # Récupération des données
             flights_data = response.json()
-            flights_data_list.append(flights_data)
+            flights_data_dic["data"].append(flights_data)
 
             print("Length of the result: ", len(flights_data["FlightStatusResource"]["Flights"]["Flight"])) if debug else None
             
@@ -144,15 +186,77 @@ def fetch_departing_flights(airport_iata, headers, date='', start_time="00:00", 
             print(f"Erreur sur la requête de {flight_endpoint}: {response.status_code}") if debug else None
             break
 
+    flights_data_dic["metadata"]["end_range"] = flight_endpoint[-16:]
 
     print("Nombre de requêtes :", count) if debug else None
-    return flights_data_list
+    return flights_data_dic
 
 
-def store_json(file_path, data):
-    with open(file_path, 'w') as json_file:
-        json.dump(data, json_file, indent=4)
-    print(f"Données enregistrées dans '{file_path}'.")
+def structure_departing_flights(file, debug=False):
+    """Structure the departing raw JSON by regrouping all flights into a single list
+
+    Args:
+        file (str or dict): Either the file path or the dictionary containing the raw data
+        debug (bool, optional): _description_. Defaults to False.
+
+    Returns:
+        dict: Dictionary containing, a:
+            - "metadata" field containing the request metadata
+            - "flights" field, containing a list of all flights in the raw data
+    """
+    
+    ###
+    # Vérifie si la variable donné est un chemin (string) ou les données directement
+    ###
+    if isinstance(file, str):
+        flight_data = retrieve_json(file, debug=debug)
+    else:
+        flight_data = file
+
+    ###
+    # Initie le résultat
+    ###
+    consolidated_flight_data = {}
+    consolidated_flight_data["metadata"] = flight_data["metadata"]
+    consolidated_flight_data["flights"] = []
+
+    ###
+    # Prépare la vérification du compte des vols reçus dans un intervalle de 4h 
+    # par rapport au checksum envoyé par l'API
+    ###
+    table_total_count = 0
+    flight_endpoint = flight_data["data"][0]["FlightStatusResource"]["Meta"]["Link"][0]["@Href"].split("?")[0]
+    meta_total_count = flight_data["data"][0]["FlightStatusResource"]["Meta"]["TotalCount"]
+
+    ###
+    # Parcourt chacune des réponses de l'API
+    ###
+    for flight_range in flight_data["data"]:        
+        
+        ###
+        # Vérifie le compte des vols reçus dans un intervalle de 4h 
+        # par rapport au checksum envoyé par l'API
+        ###
+        new_flight_endpoint = flight_range["FlightStatusResource"]["Meta"]["Link"][0]["@Href"].split("?")[0]
+
+        if new_flight_endpoint != flight_endpoint:
+            if meta_total_count != table_total_count:
+                flight_endpoint_verif = flight_range["FlightStatusResource"]["Meta"]["Link"][0]["@Rel"]
+                print(f"Attention, pour le endpoint {new_flight_endpoint} (vérif : {flight_endpoint_verif}) ! La longueur du tableau ({table_total_count}) n'est pas égale au compte total des métadonnées ({meta_total_count}).") if debug else None
+
+            flight_endpoint = new_flight_endpoint
+            table_total_count = 0
+
+        table_total_count += len(flight_range["FlightStatusResource"]["Flights"]["Flight"])
+        meta_total_count = flight_range["FlightStatusResource"]["Meta"]["TotalCount"]
+
+        ###
+        # Ajoute les données à aux résultats pour consolider les vols dans une unique liste
+        ###   
+        for flight in flight_range["FlightStatusResource"]["Flights"]["Flight"]:
+            consolidated_flight_data["flights"].append(flight)
+
+    return consolidated_flight_data
 
 
 def main():
@@ -161,11 +265,8 @@ def main():
     airport_iata = "FRA"
     today_formated = datetime.today().strftime('%Y-%m-%d')
 
-    # Construction du chemin pour stocker les données
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    path = os.path.join(script_dir, '..', '..', 'data', 'raw')
-    file_name = f"{airport_iata}_dep_flights_{today_formated}.json"
-    file_path = os.path.join(path, file_name)
+    file_name_base = f"{airport_iata}_dep_flights_{today_formated}"
+
 
     # Récupération de l'adresse IP
     try:
@@ -176,13 +277,33 @@ def main():
         print("Erreur de récupération de l'adresse IP")
         return None
 
+    # Construction du header de la requête
     headers = {
         'Authorization': f'Bearer {API_TOKEN}',
         'X-originating-IP': public_ip
     }
 
-    flights_data = fetch_departing_flights(airport_iata, headers, start_time="00:00", debug=True)
-    store_json(file_path, flights_data)
+    # Récupération des données de vol depuis l'API et stockage
+    flight_data = fetch_departing_flights(airport_iata, headers, start_time="00:00", debug=True)
+    file_name = f"{file_name_base}.json"
+    file_path = build_data_storage_path(file_name=file_name, data_stage="raw")
+    store_file(file_path, flight_data)
+
+    # Consolidation des données reçues et stockage
+    consolidated_flight_data = structure_departing_flights(file_path, debug=True)
+    file_name = f"{file_name_base}_conso.json"
+    file_path = build_data_storage_path(file_name=file_name, data_stage="interim")
+    store_file(file_path, consolidated_flight_data, debug=True)
+
+    # print("Nombre total de vols :", len(consolidated_flight_data["flights"]))
+
+    # Applatissement du dictionnaire et stockage en CSV
+    flights_df = flatten_list_of_dict(consolidated_flight_data["flights"])
+    print(flights_df.head())
+
+    file_name = f"{file_name_base}_conso_flatten.csv"
+    file_path = build_data_storage_path(file_name=file_name, data_stage="interim")
+    flights_df.to_csv(file_path, index=False)
 
 
 if __name__ == "__main__":
