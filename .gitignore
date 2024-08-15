@@ -2,6 +2,9 @@
 /data/
 /99_old_struct/data/
 
+# Logs
+/logs/
+
 # Mac OS-specific storage files
 .DS_Store
 
