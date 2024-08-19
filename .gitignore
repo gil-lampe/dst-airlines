@@ -136,9 +136,11 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+#.env
+# uniquement les variables d'environnement privées
+private.env 
 .venv
-env/
+# env/
 venv/
 ENV/
 env.bak/

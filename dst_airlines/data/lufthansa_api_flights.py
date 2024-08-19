@@ -3,19 +3,19 @@ import os
 from datetime import datetime, timedelta
 import time
 import logging
-import dotenv
+# from dotenv import load_dotenv # Chargé directement depuis le __init__.py (via config.py)
 
 from .. import utils
 
 logger = logging.getLogger(__name__)
 
+
 # LUFTHANSA
 # get token
 # curl "https://api.lufthansa.com/v1/oauth/token" -X POST -d "client_id=xxx" -d "client_secret=xxx" -d "grant_type=client_credentials"
 
-# TODO: Intégrer les API_token ET les URLs dans les variables d'environnement (.env)
 
-URL = "https://api.lufthansa.com/v1"
+URL = os.getenv("URL_API_LUFTHANSA")
 
 
 def fetch_departing_flights(airport_iata, headers, date='', start_time="00:00"):

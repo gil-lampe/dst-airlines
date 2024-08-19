@@ -1,14 +1,15 @@
 from pathlib import Path
+from . import utils
+from logging import getLogger
 
-from dotenv import load_dotenv
-# from loguru import logger
+logger = getLogger(__name__)
 
-# Load environment variables from .env file if it exists
-load_dotenv()
+# Load environment variables 
+utils.load_env_variables()
 
 # Paths
 PROJ_ROOT = Path(__file__).resolve().parents[1]
-# logger.info(f"PROJ_ROOT path is: {PROJ_ROOT}")
+logger.info(f"Le chemin PROJ_ROOT est : {PROJ_ROOT}")
 
 DATA_DIR = PROJ_ROOT / "data"
 RAW_DATA_DIR = DATA_DIR / "raw"
@@ -21,12 +22,12 @@ MODELS_DIR = PROJ_ROOT / "models"
 REPORTS_DIR = PROJ_ROOT / "reports"
 FIGURES_DIR = REPORTS_DIR / "figures"
 
-# If tqdm is installed, configure loguru with tqdm.write
-# https://github.com/Delgan/loguru/issues/135
-try:
-    from tqdm import tqdm
+# # If tqdm is installed, configure loguru with tqdm.write
+# # https://github.com/Delgan/loguru/issues/135
+# try:
+#     from tqdm import tqdm
 
-    # logger.remove(0)
-    # logger.add(lambda msg: tqdm.write(msg, end=""), colorize=True)
-except ModuleNotFoundError:
-    pass
+#     # logger.remove(0)
+#     # logger.add(lambda msg: tqdm.write(msg, end=""), colorize=True)
+# except ModuleNotFoundError:
+#     pass
