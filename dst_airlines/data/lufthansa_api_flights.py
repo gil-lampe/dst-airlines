@@ -257,7 +257,6 @@ def collect_fullday_departing_flights(api_token, public_ip, airport_iata, date =
 
     # Applatissement du dictionnaire et stockage en CSV
     flights_df = utils.flatten_list_of_dict(consolidated_flight_data["flights"])
-
     file_name = f"{file_name_base}_conso_flatten.csv"
     file_path = utils.build_data_storage_path(file_name=file_name, data_stage="interim")
     flights_df.to_csv(file_path, index=False)

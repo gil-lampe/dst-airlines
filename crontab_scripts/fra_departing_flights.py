@@ -1,4 +1,3 @@
-print("Avant les imports")
 from dst_airlines.data.lufthansa_api_flights import collect_fullday_departing_flights
 from dst_airlines.logging import logging_setup
 from dst_airlines import utils
@@ -18,9 +17,5 @@ def main():
     # Collecte des données d'hier (comportement par défaut quand la date et l'heure ne sont pas spécifiées) pour FRA
     collect_fullday_departing_flights(api_token=api_token, public_ip=public_ip, airport_iata=fra_iata)
 
-print("En dehors du main")
-
 if __name__ == "__main__":
-    print("Dans le main")
     main()
-    print("Main exécuté")
