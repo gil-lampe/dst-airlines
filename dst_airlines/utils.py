@@ -13,24 +13,6 @@ from .logging.logging_setup import setup_logging
 logger = logging.getLogger(__name__)
 
 
-def load_env_variables() -> None:
-    project_root = get_project_root_path()
-    
-    public_env_path = os.path.join(project_root, "env", "public.env")
-    private_env_path = os.path.join(project_root, "env", "private.env")
-    
-    load_dotenv(dotenv_path=public_env_path)
-    load_dotenv(dotenv_path=private_env_path)
-
-    logger.info(f'Variables publiques chargées depuis : {public_env_path}')
-    logger.info(f'Variables privées chargées depuis : {private_env_path}')
-
-
-def get_project_root_path():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = script_dir.split("dst_airlines")[-2]
-    return project_root
-
 def test(string = "un deux un deux test") -> None:
     script_dir = os.path.dirname(os.path.abspath(__file__))
     print(f"{__file__ = }")
@@ -53,13 +35,55 @@ def test_logging():
         logger.exception("exception message")
 
 
-def store_json_file(file_path, data):
+def load_env_variables() -> None:
+    """Load environment variables declared into two files "public.env" (for public env. var. which can be shared) 
+    and "private.env" (for private env. var. which should not be shared), both stored in the folder "env" located
+    in the "env" folder at the project root  
+    """
+    project_root = get_project_root_path()
+    
+    public_env_path = os.path.join(project_root, "env", "public.env")
+    private_env_path = os.path.join(project_root, "env", "private.env")
+    
+    load_dotenv(dotenv_path=public_env_path)
+    load_dotenv(dotenv_path=private_env_path)
+
+    logger.info(f'Variables publiques chargées depuis : {public_env_path}')
+    logger.info(f'Variables privées chargées depuis : {private_env_path}')
+
+
+def get_project_root_path() -> str:
+    """Return the absolute path to the root of the project
+
+    Returns:
+        str: Path to the project root
+    """
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = script_dir.split("dst_airlines")[-2]
+    return project_root
+
+
+def store_json_file(file_path: str, data: object) -> None:
+    """Store data into a JSON file
+
+    Args:
+        file_path (str): Path where to store the data
+        data (object): Data to be stored
+    """
     with open(file_path, 'w') as json_file:
         json.dump(data, json_file, indent=4)
         logger.info(f"Données enregistrées dans '{file_path}'.")
 
 
-def retrieve_json(file_path):
+def retrieve_json(file_path: str) -> dict | list:
+    """Retrieve JSON data from the given file path
+
+    Args:
+        file_path (str): Path of the JSON to be retrieved
+
+    Returns:
+        dict | list: Dict or list of dicts stored into the JSON
+    """
     try:
         with open(file_path, 'r') as f:
             flight_data = json.load(f)
@@ -70,22 +94,47 @@ def retrieve_json(file_path):
     return flight_data
 
 
-def build_data_storage_path(file_name, data_stage):
+def build_data_storage_path(file_name: str, data_stage: str) -> str:
+    """Build an absolute path combining the given file name and the folder corresponding to the given data stage
+
+    Args:
+        file_name (str): Name of the file to be saved
+        data_stage (str): Name of the data stage
+
+    Raises:
+        ValueError: Error raised when there is no corresponding folder to the given stage
+
+    Returns:
+        str: _description_
+    """
     project_root = get_project_root_path()
     path = os.path.join(project_root, 'data', data_stage)
 
     if not os.path.exists(path):
-        logger.error(f"Le stage {data_stage} n'a pas de dossier correspondant dans {project_root}.")
-        return None
+        logger.error(f"Le stage '{data_stage}' n'a pas de dossier correspondant dans {project_root}.")
+        raise ValueError(f"Le stage '{data_stage}' n'a pas de dossier correspondant dans {project_root}.")
     else:
         return os.path.join(path, file_name)
 
 
-def flatten_list_of_dict(dicts):
+def flatten_list_of_dict(dicts: list) -> pd.DataFrame:
+    """Flatten a list of dictionaries into a pandas DataFrame
+
+    Args:
+        dicts (list): List of dictonaries to be flatten
+
+    Returns:
+        pd.DataFrame: Resulting flattened dataframe
+    """
     return pd.DataFrame([flatten(d) for d in dicts])
 
 
-def get_public_ip_address():
+def get_public_ip_address() -> str:
+    """Get your public address via the website ipfy.org
+
+    Returns:
+        str: Your public IP
+    """
     ipfy_url = os.getenv("IPFY_URL")
     try:
         response = requests.get(ipfy_url)
@@ -97,7 +146,16 @@ def get_public_ip_address():
         return None
     
 
-def build_lh_api_headers(api_token, public_ip):
+def build_lh_api_headers(api_token: str, public_ip: str) -> dict:
+    """Build the Lufthansa API headers via the given API token & public IP
+
+    Args:
+        api_token (str): Your API token
+        public_ip (str): Your public IP
+
+    Returns:
+        dict: The Lufthansa API headers
+    """
     headers = {
         'Authorization': f'Bearer {api_token}',
         'X-originating-IP': public_ip
@@ -105,7 +163,16 @@ def build_lh_api_headers(api_token, public_ip):
     return headers
 
 
-def get_lh_api_token(client_id="", client_secret="") -> str:
+def get_lh_api_token(client_id: str="", client_secret: str="") -> str:
+    """Get Lufthansa API token for the given client ID and secret (will retrieve the one in the environment variables by default)
+
+    Args:
+        client_id (str, optional): Lufthansa API client ID. Defaults to "".
+        client_secret (str, optional): Lufthansa API secret. Defaults to "".
+
+    Returns:
+        str: Temporary access token derived from the client ID and secret
+    """
     client_id = os.getenv("CLIENT_ID") if client_id == "" else client_id
     client_secret = os.getenv("CLIENT_SECRET") if client_secret == "" else client_secret
     lh_api = os.getenv("URL_API_LUFTHANSA")

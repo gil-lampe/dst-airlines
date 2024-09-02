@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 URL = os.getenv("URL_API_LUFTHANSA")
 
 
-def fetch_departing_flights(airport_iata, headers, date='', start_time="00:00"):
+def fetch_departing_flights(airport_iata: str, headers: dict, date: str='', start_time: str="00:00") -> dict:
     """Fetch departing flights from the given airport_iata starting from start_time till midnight
 
     Args:
@@ -28,7 +28,7 @@ def fetch_departing_flights(airport_iata, headers, date='', start_time="00:00"):
         start_time (str, optional): Start time from which fetching will start. Defaults to "00:00".
 
     Returns:
-        dict: Dictionary containing, a:
+        dict: Dictionary containing a:
             - "metadata" field containing the request metadata
             - "data" field, containing answers from the API, each element of the list is an API call
     """
@@ -36,7 +36,7 @@ def fetch_departing_flights(airport_iata, headers, date='', start_time="00:00"):
     # Création d'une fonction interne pour incrémenter l'endpoint de 4h (par défaut)
     # l'API ne renvoie que des données sur une tranche ("range") de 4h
     ###
-    def increment_range(flight_endpoint):
+    def increment_range(flight_endpoint: str) -> tuple:
         """Increment the starting time of the flight_endpoint of 4h (API range)
 
         Args:
@@ -167,14 +167,14 @@ def fetch_departing_flights(airport_iata, headers, date='', start_time="00:00"):
     return flights_data_dic
 
 
-def structure_departing_flights(file):
+def structure_departing_flights(file: str | dict) -> dict :
     """Structure the departing raw JSON by regrouping all flights into a single list
 
     Args:
         file (str or dict): Either the file path or the dictionary containing the raw data
 
     Returns:
-        dict: Dictionary containing, a:
+        dict: Dictionary containing a:
             - "metadata" field containing the request metadata
             - "flights" field, containing a list of all flights in the raw data
     """
@@ -233,7 +233,18 @@ def structure_departing_flights(file):
     return consolidated_flight_data
 
 
-def collect_fullday_departing_flights(api_token, public_ip, airport_iata, date = '', start_time="00:00"):
+def collect_fullday_departing_flights(api_token: str, public_ip: str, airport_iata: str, date: str = '', start_time: str = "00:00"):
+    """Consolidated function to collect the departing flights from the start time (by default 00:00 - beginning of the day) till midnight
+    for the given date (by default yesterday) for a given airport using the given credentials
+    The resulting data will be stored in raw format into data/raw then in interim format in data/interm in a consolidated JSON and CSV
+
+    Args:
+        api_token (str): Lufthansa API token
+        public_ip (str): The IP address executing the script
+        airport_iata (str): IATA of the airport from where the departing flights will be collected
+        date (str, optional): Date (format: YYYY-MM-DD) of the expected data - attention, the API provides a limited range of data. Defaults to '' = yesterday.
+        start_time (_type_, optional): Time (format: HH:mm) from when to start the extraction. Defaults to "00:00".
+    """
     if date:
         date_formated = date.strftime('%Y-%m-%d')
     else:
