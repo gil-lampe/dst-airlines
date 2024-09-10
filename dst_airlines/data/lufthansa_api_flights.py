@@ -282,11 +282,11 @@ def collect_fullday_departing_flights(api_token: str, public_ip: str, airport_ia
     # Consolidation des données reçues et stockage
     consolidated_flight_data = structure_departing_flights(file_path, api_name)
     file_name = f"{file_name_base}_conso.json"
-    file_path = utils.build_data_storage_path(file_name=file_name, data_stage="interim")
+    file_path = utils.build_data_storage_path(file_name=file_name, data_stage="interim", folder="flights")
     utils.store_json_file(file_path, consolidated_flight_data)
 
     # Applatissement du dictionnaire et stockage en CSV
     flights_df = utils.flatten_list_of_dict(consolidated_flight_data["flights"])
     file_name = f"{file_name_base}_conso_flatten.csv"
-    file_path = utils.build_data_storage_path(file_name=file_name, data_stage="interim")
+    file_path = utils.build_data_storage_path(file_name=file_name, data_stage="interim", folder="flights")
     flights_df.to_csv(file_path, index=False)

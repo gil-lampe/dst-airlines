@@ -94,12 +94,13 @@ def retrieve_json(file_path: str) -> dict | list:
     return flight_data
 
 
-def build_data_storage_path(file_name: str, data_stage: str) -> str:
+def build_data_storage_path(file_name: str, data_stage: str, folder: str) -> str:
     """Build an absolute path combining the given file name and the folder corresponding to the given data stage
 
     Args:
         file_name (str): Name of the file to be saved
         data_stage (str): Name of the data stage
+        folder (str): Name of the folder within the data_stage (e.g., "flights" or "weather_daily")
 
     Raises:
         ValueError: Error raised when the data_stage is not recognized or there is no corresponding folder to the given stage
@@ -119,11 +120,11 @@ def build_data_storage_path(file_name: str, data_stage: str) -> str:
         raise ValueError(f"Le stage '{data_stage}' n'est pas dans la liste des possibilités : {data_paths.keys}.")        
 
     project_root = get_project_root_path()
-    path = os.path.join(project_root, 'data', complete_data_stage)
+    path = os.path.join(project_root, 'data', complete_data_stage, folder)
 
     if not os.path.exists(path):
-        logger.error(f"Le stage '{complete_data_stage}' n'a pas de dossier correspondant dans {project_root}.")
-        raise ValueError(f"Le stage '{complete_data_stage}' n'a pas de dossier correspondant dans {project_root}.")
+        logger.error(f"Le chemin '{path}' n'existe pas sur votre machine.")
+        raise ValueError(f"Le chemin '{path}' n'existe pas sur votre machine.")
     else:
         return os.path.join(path, file_name)
 
