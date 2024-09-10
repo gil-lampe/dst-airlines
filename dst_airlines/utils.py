@@ -102,17 +102,28 @@ def build_data_storage_path(file_name: str, data_stage: str) -> str:
         data_stage (str): Name of the data stage
 
     Raises:
-        ValueError: Error raised when there is no corresponding folder to the given stage
+        ValueError: Error raised when the data_stage is not recognized or there is no corresponding folder to the given stage
 
     Returns:
         str: _description_
     """
+    data_paths = {"raw": "1_raw",
+                  "interim": "2_interim",
+                  "processed": "3_processed",
+                  "external": "4_external"}
+    
+    if data_stage in data_paths:
+        complete_data_stage = data_paths[data_stage]
+    else:
+        logger.error(f"Le stage '{data_stage}' n'est pas dans la liste des possibilités : {data_paths.keys}.")
+        raise ValueError(f"Le stage '{data_stage}' n'est pas dans la liste des possibilités : {data_paths.keys}.")        
+
     project_root = get_project_root_path()
-    path = os.path.join(project_root, 'data', data_stage)
+    path = os.path.join(project_root, 'data', complete_data_stage)
 
     if not os.path.exists(path):
-        logger.error(f"Le stage '{data_stage}' n'a pas de dossier correspondant dans {project_root}.")
-        raise ValueError(f"Le stage '{data_stage}' n'a pas de dossier correspondant dans {project_root}.")
+        logger.error(f"Le stage '{complete_data_stage}' n'a pas de dossier correspondant dans {project_root}.")
+        raise ValueError(f"Le stage '{complete_data_stage}' n'a pas de dossier correspondant dans {project_root}.")
     else:
         return os.path.join(path, file_name)
 
