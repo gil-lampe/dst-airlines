@@ -1,6 +1,9 @@
 import requests 
 import json
 import csv
+import os
+from datetime import datetime
+import time
 
 # LUFTHANSA
 # get token
@@ -8,12 +11,16 @@ import csv
 
 # get IP addr :
 # ip addr | grep eth0
-API_KEY = '6vffdsbb7pnsty3hwzvatwbj'
+API_KEY = 'w73hpwsd499j4f2u2x9grg3g'
 url = "https://api.lufthansa.com/v1"
 headers = {
     'Authorization': f'Bearer {API_KEY}',
     'X-originating-IP': '172.29.180.161'
 }
+
+# Dossier où enregistrer les fichiers CSV  // le crée si nécessaire :
+output_dir = '/home/sanou/DST-Airlines/data/1_raw'
+os.makedirs(output_dir, exist_ok=True)
 
 # Liste des endpoints et des noms de fichiers correspondants
 endpoints = {
@@ -37,14 +44,18 @@ def fetch_all_data(endpoint, headers):
     all_data = []
     limit = 100 # nombre max par page
     offset = 0 # démarre à la 1e page
+    call_count = 0
     
     while True:
         response = requests.get(f"{url}{endpoint}?limit={limit}&offset={offset}", headers = headers)
+        call_count += 1
         print(f"Requête envoyée à : {url}{endpoint}?limit={limit}&offset={offset}")
         print(f"Code réponse : {response.status_code}")
         
         if response.status_code == 200:
             json_data = response.json()
+            
+            # data = json_data
             data = transform_data(json_data, endpoint.split("/")[-1])
             
             if not data:
@@ -52,9 +63,15 @@ def fetch_all_data(endpoint, headers):
             
             all_data.extend(data)
             offset += limit
+            
         else:
             print(f"Erreur sur la requête de {endpoint}: {response.status_code}")
             break
+        
+                    
+        if call_count %5 == 0:
+            time.sleep(1)
+            
     return all_data
 
 # Transforme les données JSON en liste de dictionnaires (rows pour CSV)
@@ -72,7 +89,7 @@ def transform_data(json_data, key):
     if key == 'aircraft':
         return json_data.get('AircraftResource', {}).get('AircraftSummaries', {}).get('AircraftSummary', [])
 
-    return []
+#     return []
     # if 'Airports' in json_data:
     #     return json_data['Airports']
     # if 'cities' in json_data:
@@ -89,21 +106,40 @@ def save_to_csv(data, filename):
         return
 
     # Récupérer les clés (headers) du premier dictionnaire
+    timestamp = datetime.now().strftime("%Y-%m-%d")
     headers = data[0].keys()
+    filename_timestamp = f"{filename}_{timestamp}.csv"
+    file_path = os.path.join(output_dir, filename_timestamp)
 
-    with open(filename, 'w', newline='', encoding='utf-8') as csv_file:
+    with open(file_path, 'w', newline='', encoding='utf-8') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=headers)
         writer.writeheader()
         for row in data:
             writer.writerow(row)
 
-    print(f"Données enregistrées dans '{filename}'.")
+    print(f"Données CSV enregistrées dans '{filename}'.")
+
+def save_to_json(data, filename):
+    if not data:
+        print(f"Aucune donnée à enregistrer pour {file_path}")
+        return
+    
+    timestamp = datetime.now().strftime("%Y-%m-%d")
+    filename_timestamp = f"{filename}_{timestamp}.json"
+    file_path = os.path.join(output_dir, filename_timestamp)
+    
+    with open(file_path, "w", encoding = "utf-8") as json_file:
+        json.dump(data, json_file, ensure_ascii=False, indent=4)
+    
+    print(f"Données JSON enregistrées dans '{file_path}'.")
 
 # Boucle pour parcourir les endpoints :
 for key, endpoint in endpoints.items():
     all_data = fetch_all_data(endpoint, headers)
-    csv_filename = f'{key}_data.csv'
+    csv_filename = f'{key}_data'
+    json_filename = f'{key}_data'
     save_to_csv(all_data, csv_filename)
+    save_to_json(all_data, json_filename)
 
 
 # FONCTIONNE JSON
