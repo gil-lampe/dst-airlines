@@ -248,7 +248,7 @@ def structure_departing_flights(file: str | dict, api_name: str) -> dict :
     return consolidated_flight_data
 
 
-def collect_fullday_departing_flights(api_token: str, public_ip: str, airport_iata: str, api_name: str="flightstatus", date: str="", start_time: str="00:00"):
+def download_fullday_departing_flights(api_token: str, public_ip: str, airport_iata: str, api_name: str="flightstatus", date: str="", start_time: str="00:00") -> None:
     """Consolidated function to collect the departing flights from the start time (by default 00:00 - beginning of the day) till midnight
     for the given date (by default 3 days ago) for a given airport using the given credentials
     The resulting data will be stored in raw format into data/raw then in interim format in data/interm in a consolidated JSON and CSV

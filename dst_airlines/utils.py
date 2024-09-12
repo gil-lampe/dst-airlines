@@ -9,6 +9,8 @@ import logging.config
 import logging.handlers
 import os
 from .logging.logging_setup import setup_logging
+from typing import List
+
 
 logger = logging.getLogger(__name__)
 
@@ -201,3 +203,14 @@ def get_lh_api_token(client_id: str="", client_secret: str="") -> str:
     return r.json()["access_token"]
 
 
+def get_file_list_in_folder(folder_path: str) -> List[str]:
+    """Generate a list containing all the files withtin the given folder
+
+    Args:
+        folder_path (str): Absolute path to the folder
+
+    Returns:
+        List[str]: List of the files within the given folder
+    """
+    files = [file for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
+    return files
