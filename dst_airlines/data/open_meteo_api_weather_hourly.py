@@ -154,12 +154,12 @@ def download_weather_data_for_existing_flights() -> None:
 
     # Récupération de tous les fichiers CSV de données de vols 
     flights_folder = utils.build_data_storage_path(file_name="", data_stage="interim", folder="flights")
-    flights_files = utils.get_file_list_in_folder(flights_folder)
+    flights_files = utils.get_files_in_folder(flights_folder)
     flights_files_csv = [file for file in flights_files if ".csv" in file]
 
     # Récupération de tous les fichiers de météo
     weather_folder = utils.build_data_storage_path(file_name="", data_stage="interim", folder="weather_hourly")
-    weather_files = utils.get_file_list_in_folder(weather_folder)
+    weather_files = utils.get_files_in_folder(weather_folder)
 
     # Génération de dictionnaires clé = date / valeur = nom du fichier 
     flights_date_file = create_dict_file_date(flights_files_csv)

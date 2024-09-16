@@ -96,12 +96,12 @@ def retrieve_json(file_path: str) -> dict | list:
     return flight_data
 
 
-def build_data_storage_path(file_name: str, data_stage: str, folder: str) -> str:
+def build_data_storage_path(file_name: str, data_stage: str, folder: str = "") -> str:
     """Build an absolute path combining the given file name and the folder corresponding to the given data stage
 
     Args:
         file_name (str): Name of the file to be saved
-        data_stage (str): Name of the data stage
+        data_stage (str, optional): Name of the data stage. Defaults to "".
         folder (str): Name of the folder within the data_stage (e.g., "flights" or "weather_daily")
 
     Raises:
@@ -203,7 +203,7 @@ def get_lh_api_token(client_id: str="", client_secret: str="") -> str:
     return r.json()["access_token"]
 
 
-def get_file_list_in_folder(folder_path: str) -> List[str]:
+def get_files_in_folder(folder_path: str) -> List[str]:
     """Generate a list containing all the files withtin the given folder
 
     Args:
