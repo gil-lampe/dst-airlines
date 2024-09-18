@@ -1,6 +1,5 @@
 from pymongo import MongoClient
 from pymongo.errors import OperationFailure
-from pymongo.collection import Collection
 import os
 import logging
 from .. import utils
@@ -9,19 +8,19 @@ import json
 
 logger = logging.getLogger(__name__)
 
-def create_users(database_name: str, user_list: List[str], role: str = "readWrite") -> None:
+def create_users(mongo_client: MongoClient, database_name: str, user_list: List[str], role: str = "readWrite") -> None:
+    """Tries to create users listed in "user_list" with the given "role" in the MongoDB database named "database_name" from the MongoDB mongo_client, it will handle the issue if the user already exists without failing
 
-    ROOT_USERNAME = os.getenv("MONGO_INITDB_ROOT_USERNAME")
-    ROOT_PASSWORD = os.getenv("MONGO_INITDB_ROOT_PASSWORD")
+    Args:
+        mongo_client (MongoClient): MongoDB client
+        database_name (str): Name of the MongoDB database
+        user_list (List[str]): List of the users to be added
+        role (str, optional): Role to be given to the users. Defaults to "readWrite".
 
-    client = MongoClient(
-        host = "localhost",
-        port = 27017,
-        username = ROOT_USERNAME,
-        password = ROOT_PASSWORD
-    )
-
-    db_admin = client["admin"]
+    Raises:
+        e: All standard errors apart from OperationFailure code 51003 (user already exists)
+    """
+    db_admin = mongo_client["admin"]
 
     for user in user_list:
         user = user.upper()
@@ -41,7 +40,19 @@ def create_users(database_name: str, user_list: List[str], role: str = "readWrit
                 raise e
 
 
+# TODO: Gestion de la situation où un fichier a été partiellement traité
 def add_flights_data(mongo_client: MongoClient, db_name: str, collection_name: str, force_test_all: bool=False):
+    """Add all flights raw data files (files in 1_raw folder containing "flight_file" but not "OLD") into the given mongo_client > database_name > collection_name. 
+    The function checks if the document already exists in the collection and only add it if it's not the case.
+    If the function finds that there are at least 5 FlightStatusRessource documents which already exist in the given collection, it will move to the next file apart if it is forced to test them all (via force_test_all)
+
+    Args:
+        mongo_client (MongoClient): Mongo Client to be used to find the database (the user must have sufficient rights)
+        db_name (str): Name of the Mongo database
+        collection_name (str): Name of the collection - will create one if it doesn't exist
+        force_test_all (bool, optional): Force to check the existence of all FlightStatusRessource documents for a given file before moving to the next. Defaults to False - i.e., if 5 documents already exist in the collection, it will move to the next file.
+    """
+    # Récupération de la base de données et de la collection (en crée une si elle n'existe pas déjà)
     flights_db = mongo_client[db_name]
 
     if collection_name in flights_db.list_collection_names():
@@ -50,31 +61,44 @@ def add_flights_data(mongo_client: MongoClient, db_name: str, collection_name: s
         flights_collection = flights_db.create_collection(collection_name)
         logger.info(f"'{collection_name}' collection created in '{db_name}' database.")
 
+    # Récupération de la liste des fichiers JSON contenant les données de vol brutes
     raw_path = utils.build_data_storage_path("", data_stage="raw")
     raw_files = utils.get_files_in_folder(raw_path)
-    flights_files = [flight_file for flight_file in raw_files if ("dep_flights" in flight_file and "OLD" not in flight_file)]
+    flight_files = [flight_file for flight_file in raw_files if ("dep_flights" in flight_file and "OLD" not in flight_file)]
 
+    # Mise en place du test d'existence pour éviter l'intégralité du fichier s'il a déjà été inséré dans la collection
     existence_count = 0
+    existence_max_count = 5
 
-    for flights_file in flights_files:
+    # Pour chacun des fichiers de vol brute...
+    for flights_file in flight_files:
         flights_path = os.path.join(raw_path, flights_file)
         
+        # Récupération des données dans un dictionnaire
         with open(flights_path, "r") as file:
             flights = json.load(file)
 
+        # Sélection des données contenues dans la clé "FlightStatusResource"
         flight_data = flights["data"]
         flight_status_resources = [data["FlightStatusResource"] for data in flight_data]
 
+        # Pour chacun des objets "FlightStatusResource"...
         for flight_status_resource in flight_status_resources:
+
+            # Vérification de son existence au sein de la collection sinon, ajout, si oui incrémentation du comptage
+            # Si le comptage atteint existence_max_count = 5, passage au fichier suivant
             existence_test = flights_collection.find_one(flight_status_resource)
 
             if existence_test == None:
                 flights_collection.insert_one(flight_status_resource)
+            elif existence_count >= existence_max_count and not force_test_all:
+                break            
             else:
                 existence_count +=1
-            
-        if existence_count >= 5 and not force_test_all:
-            logger.info(f"At least 5 documents of '{flights_path}' already exist in the '{collection_name}' collection of the '{db_name}' database, moved to the next file.")
+
+        # Si le comptage atteint existence_max_count = 5, traçage
+        if existence_count >= existence_max_count and not force_test_all:
+            logger.info(f"At least {existence_max_count} documents of '{flights_path}' already exist in the '{collection_name}' collection of the '{db_name}' database, moved to the next file.")
             existence_count = 0
             continue
         
