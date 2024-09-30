@@ -27,12 +27,12 @@ services:
       - mongo-config:/data/configdb
 
 # Volumes pour nos données
-volumes:
-  mysql-db-data: # {}
-  mongo-data:
-  mongo-config:
-  mongo-data:
-  mongo-config:
+# volumes:
+#   mysql-db-data: # {}
+#   mongo-data:
+#   mongo-config:
+#   mongo-data: 
+#   mongo-config:
 
 
 # Pour accéder à nos DB :
