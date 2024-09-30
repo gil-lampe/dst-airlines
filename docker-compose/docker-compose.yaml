@@ -21,16 +21,16 @@ services:
     env_file:
       - ../env/private.env
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongo-data:/data/db # endroit où les données de MongoDB sont stockées par défaut
       - mongo-config:/data/configdb
 
 # Volumes pour nos données
-# volumes:
-#   mysql-db-data: # {}
-#   mongo-data:
-#   mongo-config:
+volumes:
+  mysql-db-data: {}
+  mongo-data: {}
+  mongo-config: {}
 #   mongo-data: 
 #   mongo-config:
 
