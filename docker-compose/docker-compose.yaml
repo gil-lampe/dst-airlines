@@ -31,6 +31,8 @@ volumes:
   mysql-db-data: # {}
   mongo-data:
   mongo-config:
+  mongo-data:
+  mongo-config:
 
 
 # Pour accéder à nos DB :

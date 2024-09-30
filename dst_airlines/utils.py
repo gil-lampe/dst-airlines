@@ -9,6 +9,8 @@ import logging.config
 import logging.handlers
 import os
 from .logging.logging_setup import setup_logging
+from typing import List
+
 
 logger = logging.getLogger(__name__)
 
@@ -94,25 +96,37 @@ def retrieve_json(file_path: str) -> dict | list:
     return flight_data
 
 
-def build_data_storage_path(file_name: str, data_stage: str) -> str:
+def build_data_storage_path(file_name: str, data_stage: str, folder: str = "") -> str:
     """Build an absolute path combining the given file name and the folder corresponding to the given data stage
 
     Args:
         file_name (str): Name of the file to be saved
-        data_stage (str): Name of the data stage
+        data_stage (str, optional): Name of the data stage. Defaults to "".
+        folder (str): Name of the folder within the data_stage (e.g., "flights" or "weather_daily")
 
     Raises:
-        ValueError: Error raised when there is no corresponding folder to the given stage
+        ValueError: Error raised when the data_stage is not recognized or there is no corresponding folder to the given stage
 
     Returns:
         str: _description_
     """
+    data_paths = {"raw": "1_raw",
+                  "interim": "2_interim",
+                  "processed": "3_processed",
+                  "external": "4_external"}
+    
+    if data_stage in data_paths:
+        complete_data_stage = data_paths[data_stage]
+    else:
+        logger.error(f"Le stage '{data_stage}' n'est pas dans la liste des possibilités : {data_paths.keys}.")
+        raise ValueError(f"Le stage '{data_stage}' n'est pas dans la liste des possibilités : {data_paths.keys}.")        
+
     project_root = get_project_root_path()
-    path = os.path.join(project_root, 'data', data_stage)
+    path = os.path.join(project_root, 'data', complete_data_stage, folder)
 
     if not os.path.exists(path):
-        logger.error(f"Le stage '{data_stage}' n'a pas de dossier correspondant dans {project_root}.")
-        raise ValueError(f"Le stage '{data_stage}' n'a pas de dossier correspondant dans {project_root}.")
+        logger.error(f"Le chemin '{path}' n'existe pas sur votre machine.")
+        raise ValueError(f"Le chemin '{path}' n'existe pas sur votre machine.")
     else:
         return os.path.join(path, file_name)
 
@@ -189,3 +203,14 @@ def get_lh_api_token(client_id: str="", client_secret: str="") -> str:
     return r.json()["access_token"]
 
 
+def get_files_in_folder(folder_path: str) -> List[str]:
+    """Generate a list containing all the files withtin the given folder
+
+    Args:
+        folder_path (str): Absolute path to the folder
+
+    Returns:
+        List[str]: List of the files within the given folder
+    """
+    files = [file for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
+    return files

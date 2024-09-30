@@ -9,21 +9,16 @@ from .. import utils
 
 logger = logging.getLogger(__name__)
 
-
-# LUFTHANSA
-# get token
-# curl "https://api.lufthansa.com/v1/oauth/token" -X POST -d "client_id=xxx" -d "client_secret=xxx" -d "grant_type=client_credentials"
-
-
 URL = os.getenv("URL_API_LUFTHANSA")
 
 
-def fetch_departing_flights(airport_iata: str, headers: dict, date: str='', start_time: str="00:00") -> dict:
+def fetch_departing_flights(airport_iata: str, headers: dict, api_name: str="flightstatus", date: str="", start_time: str="00:00") -> dict:
     """Fetch departing flights from the given airport_iata starting from start_time till midnight
 
     Args:
         airport_iata (str): IATA of the airport
         headers (dict): dictionnary containing "Authorization" and "X-originating-IP" keys to authenticate the request
+        api_name (str, optional): Name of the API (should be either "flightstatus" or "customerflightinformation"). Defaults to "flightstatus".
         date (str, optional): target date, format should be YYYY-MM-DD, if empty string is given, date will be set up as yesterday. Defaults to ''.
         start_time (str, optional): Start time from which fetching will start. Defaults to "00:00".
 
@@ -70,7 +65,7 @@ def fetch_departing_flights(airport_iata: str, headers: dict, date: str='', star
     ###
     # Définition des variables
     ###
-    airport_endpoint = f"/operations/flightstatus/departures/{airport_iata}/"
+    airport_endpoint = f"/operations/{api_name}/departures/{airport_iata}/"
 
     if date == '':
         date = (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
@@ -82,6 +77,14 @@ def fetch_departing_flights(airport_iata: str, headers: dict, date: str='', star
     total_range_count = 0 # nombre d'éléments dans le range
 
     count = 0
+
+    if api_name == "flightstatus":
+        data_container = "FlightStatusResource"
+    elif api_name == "customerflightinformation":
+        data_container = "FlightInformation"
+    else:
+        logger.error(f"La valeur de {api_name = } n'est pas une valeur acceptée ('flightstatus' ou 'customerflightinformation')")
+        raise ValueError(f"La valeur de {api_name = } n'est pas une valeur acceptée ('flightstatus' ou 'customerflightinformation')")
 
     ###
     # Structuration du dictionnaire final
@@ -117,16 +120,16 @@ def fetch_departing_flights(airport_iata: str, headers: dict, date: str='', star
             flights_data = response.json()
             flights_data_dic["data"].append(flights_data)
 
-            logger.debug(f'Longeur du résultat : {len(flights_data["FlightStatusResource"]["Flights"]["Flight"])}')
+            logger.debug(f'Longeur du résultat : {len(flights_data[data_container]["Flights"]["Flight"])}')
             
             # Nombre total d'éléments dans ce range de 4h
-            total_range_count = flights_data["FlightStatusResource"]["Meta"]["TotalCount"]
+            total_range_count = flights_data[data_container]["Meta"]["TotalCount"]
 
             logger.debug(f"Offset: {offset} / {total_range_count}")
             offset += LIMIT
 
             # Si l'offset est supérieur au total d'éléments du range, incrémentation du range
-            if offset > total_range_count:
+            if offset >= total_range_count:
                 offset = 0
                 outranged, flight_endpoint = increment_range(flight_endpoint)
                 # Si le range incrémenté commence le lendemain (> 24h) on arrête
@@ -167,7 +170,7 @@ def fetch_departing_flights(airport_iata: str, headers: dict, date: str='', star
     return flights_data_dic
 
 
-def structure_departing_flights(file: str | dict) -> dict :
+def structure_departing_flights(file: str | dict, api_name: str) -> dict :
     """Structure the departing raw JSON by regrouping all flights into a single list
 
     Args:
@@ -188,6 +191,18 @@ def structure_departing_flights(file: str | dict) -> dict :
         flight_data = file
 
     ###
+    # Définit quelle API a été utilisé pour spécifier la forme du résultat
+    ###
+    if api_name == "flightstatus":
+        data_container = "FlightStatusResource"
+    elif api_name == "customerflightinformation":
+        data_container = "FlightInformation"
+    else:
+        logger.error(f"La valeur de {api_name = } n'est pas une valeur acceptée ('flightstatus' ou 'customerflightinformation')")
+        raise ValueError(f"La valeur de {api_name = } n'est pas une valeur acceptée ('flightstatus' ou 'customerflightinformation')")
+
+
+    ###
     # Initie le résultat
     ###
     consolidated_flight_data = {}
@@ -199,8 +214,8 @@ def structure_departing_flights(file: str | dict) -> dict :
     # par rapport au checksum envoyé par l'API
     ###
     table_total_count = 0
-    flight_endpoint = flight_data["data"][0]["FlightStatusResource"]["Meta"]["Link"][0]["@Href"].split("?")[0]
-    meta_total_count = flight_data["data"][0]["FlightStatusResource"]["Meta"]["TotalCount"]
+    flight_endpoint = flight_data["data"][0][data_container]["Meta"]["Link"][0]["@Href"].split("?")[0]
+    meta_total_count = flight_data["data"][0][data_container]["Meta"]["TotalCount"]
 
     ###
     # Parcourt chacune des réponses de l'API
@@ -211,63 +226,67 @@ def structure_departing_flights(file: str | dict) -> dict :
         # Vérifie le compte des vols reçus dans un intervalle de 4h 
         # par rapport au checksum envoyé par l'API
         ###
-        new_flight_endpoint = flight_range["FlightStatusResource"]["Meta"]["Link"][0]["@Href"].split("?")[0]
+        new_flight_endpoint = flight_range[data_container]["Meta"]["Link"][0]["@Href"].split("?")[0]
 
         if new_flight_endpoint != flight_endpoint:
             if meta_total_count != table_total_count:
-                flight_endpoint_verif = flight_range["FlightStatusResource"]["Meta"]["Link"][0]["@Rel"]
+                flight_endpoint_verif = flight_range[data_container]["Meta"]["Link"][0]["@Rel"]
                 logger.error(f"Attention, pour le endpoint {new_flight_endpoint} (vérif : {flight_endpoint_verif}) ! La longueur du tableau ({table_total_count}) n'est pas égale au compte total des métadonnées ({meta_total_count}).")
 
             flight_endpoint = new_flight_endpoint
             table_total_count = 0
 
-        table_total_count += len(flight_range["FlightStatusResource"]["Flights"]["Flight"])
-        meta_total_count = flight_range["FlightStatusResource"]["Meta"]["TotalCount"]
+        table_total_count += len(flight_range[data_container]["Flights"]["Flight"])
+        meta_total_count = flight_range[data_container]["Meta"]["TotalCount"]
 
         ###
         # Ajoute les données à aux résultats pour consolider les vols dans une unique liste
         ###   
-        for flight in flight_range["FlightStatusResource"]["Flights"]["Flight"]:
+        for flight in flight_range[data_container]["Flights"]["Flight"]:
             consolidated_flight_data["flights"].append(flight)
 
     return consolidated_flight_data
 
 
-def collect_fullday_departing_flights(api_token: str, public_ip: str, airport_iata: str, date: str = '', start_time: str = "00:00"):
+def download_fullday_departing_flights(api_token: str, public_ip: str, airport_iata: str, api_name: str="flightstatus", date: str="", start_time: str="00:00") -> None:
     """Consolidated function to collect the departing flights from the start time (by default 00:00 - beginning of the day) till midnight
-    for the given date (by default yesterday) for a given airport using the given credentials
+    for the given date (by default 3 days ago) for a given airport using the given credentials
     The resulting data will be stored in raw format into data/raw then in interim format in data/interm in a consolidated JSON and CSV
 
     Args:
         api_token (str): Lufthansa API token
         public_ip (str): The IP address executing the script
         airport_iata (str): IATA of the airport from where the departing flights will be collected
-        date (str, optional): Date (format: YYYY-MM-DD) of the expected data - attention, the API provides a limited range of data. Defaults to '' = yesterday.
-        start_time (_type_, optional): Time (format: HH:mm) from when to start the extraction. Defaults to "00:00".
+        api_name (str, optional): Name of the API (should be either "flightstatus" or "customerflightinformation"). Defaults to "flightstatus".
+        date (str, optional): Date (format: YYYY-MM-DD) of the expected data - attention, the API provides a limited range of data. Defaults to "" = 3 days ago.
+        start_time (str, optional): Time (format: HH:mm) from when to start the extraction. Defaults to "00:00".
     """
     if date:
-        date_formated = date.strftime('%Y-%m-%d')
+        if isinstance(date, datetime):
+            date_formated = date.strftime('%Y-%m-%d')
+        elif isinstance(date, str):
+            date_formated = date
     else:
-        date_formated = (datetime.today() - timedelta(days=1)).strftime('%Y-%m-%d')
+        date_formated = (datetime.today() - timedelta(days=3)).strftime('%Y-%m-%d')
 
-    file_name_base = f"{airport_iata}_dep_flights_{date_formated}"
+    file_name_base = f"{airport_iata}_{api_name}_dep_flights_{date_formated}"
 
     headers = utils.build_lh_api_headers(api_token, public_ip)
 
     # Récupération des données de vol depuis l'API et stockage
-    flight_data = fetch_departing_flights(airport_iata, headers, date=date_formated, start_time=start_time)
+    flight_data = fetch_departing_flights(airport_iata, headers, api_name=api_name, date=date_formated, start_time=start_time)
     file_name = f"{file_name_base}.json"
     file_path = utils.build_data_storage_path(file_name=file_name, data_stage="raw")
     utils.store_json_file(file_path, flight_data)
 
     # Consolidation des données reçues et stockage
-    consolidated_flight_data = structure_departing_flights(file_path)
+    consolidated_flight_data = structure_departing_flights(file_path, api_name)
     file_name = f"{file_name_base}_conso.json"
-    file_path = utils.build_data_storage_path(file_name=file_name, data_stage="interim")
+    file_path = utils.build_data_storage_path(file_name=file_name, data_stage="interim", folder="flights")
     utils.store_json_file(file_path, consolidated_flight_data)
 
     # Applatissement du dictionnaire et stockage en CSV
     flights_df = utils.flatten_list_of_dict(consolidated_flight_data["flights"])
     file_name = f"{file_name_base}_conso_flatten.csv"
-    file_path = utils.build_data_storage_path(file_name=file_name, data_stage="interim")
+    file_path = utils.build_data_storage_path(file_name=file_name, data_stage="interim", folder="flights")
     flights_df.to_csv(file_path, index=False)
