@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timedelta
 import time
 import logging
+from typing import List
 # from dotenv import load_dotenv # Chargé directement depuis le __init__.py (via config.py)
 
 from .. import utils
@@ -170,6 +171,58 @@ def fetch_departing_flights(airport_iata: str, headers: dict, api_name: str="fli
     return flights_data_dic
 
 
+def extract_flights_from_resources(flight_resources: List[dict]) -> List[dict]:
+    """Extract flights data from a list containing the flight resource content 
+    (either "FlightStatusResource" or "customerflightinformation" content)
+
+    Args:
+        flight_resources (List[dict]): List containing the flight resource content (list of dictionaries with "Flights" and "Meta" as keys)
+
+    Returns:
+        List[dict]: List of "Flight" elements (value corresponding to the "Flight" key)
+    """
+
+    ###
+    # Prépare la vérification du compte des vols reçus dans un intervalle de 4h 
+    # par rapport au checksum envoyé par l'API
+    ###
+    table_total_count = 0
+    flight_endpoint = flight_resources[0]["Meta"]["Link"][0]["@Href"].split("?")[0]
+    meta_total_count = flight_resources[0]["Meta"]["TotalCount"]
+
+    flights = []
+
+    ###
+    # Parcourt chacune des réponses de l'API
+    ###
+    for flight_resource in flight_resources:        
+        
+        ###
+        # Vérifie le compte des vols reçus dans un intervalle de 4h 
+        # par rapport au checksum envoyé par l'API
+        ###
+        new_flight_endpoint = flight_resource["Meta"]["Link"][0]["@Href"].split("?")[0]
+
+        if new_flight_endpoint != flight_endpoint:
+            if meta_total_count != table_total_count:
+                flight_endpoint_verif = flight_resource["Meta"]["Link"][0]["@Rel"]
+                logger.error(f"Attention, pour le endpoint {new_flight_endpoint} (vérif : {flight_endpoint_verif}) ! La longueur du tableau ({table_total_count}) n'est pas égale au compte total des métadonnées ({meta_total_count}).")
+
+            flight_endpoint = new_flight_endpoint
+            table_total_count = 0
+
+        table_total_count += len(flight_resource["Flights"]["Flight"])
+        meta_total_count = flight_resource["Meta"]["TotalCount"]
+
+        ###
+        # Ajoute les données à aux résultats pour consolider les vols dans une unique liste
+        ###   
+        for flight in flight_resource["Flights"]["Flight"]:
+            flights.append(flight)
+
+    return flights
+
+
 def structure_departing_flights(file: str | dict, api_name: str) -> dict :
     """Structure the departing raw JSON by regrouping all flights into a single list
 
@@ -207,43 +260,48 @@ def structure_departing_flights(file: str | dict, api_name: str) -> dict :
     ###
     consolidated_flight_data = {}
     consolidated_flight_data["metadata"] = flight_data["metadata"]
-    consolidated_flight_data["flights"] = []
+    
+    flight_resources = [flight_resource[data_container] for flight_resource in flight_data["data"]]
+    
+    consolidated_flight_data["flights"] = extract_flights_from_resources(flight_resources)
 
-    ###
-    # Prépare la vérification du compte des vols reçus dans un intervalle de 4h 
-    # par rapport au checksum envoyé par l'API
-    ###
-    table_total_count = 0
-    flight_endpoint = flight_data["data"][0][data_container]["Meta"]["Link"][0]["@Href"].split("?")[0]
-    meta_total_count = flight_data["data"][0][data_container]["Meta"]["TotalCount"]
 
-    ###
-    # Parcourt chacune des réponses de l'API
-    ###
-    for flight_range in flight_data["data"]:        
+
+    # ###
+    # # Prépare la vérification du compte des vols reçus dans un intervalle de 4h 
+    # # par rapport au checksum envoyé par l'API
+    # ###
+    # table_total_count = 0
+    # flight_endpoint = flight_data["data"][0][data_container]["Meta"]["Link"][0]["@Href"].split("?")[0]
+    # meta_total_count = flight_data["data"][0][data_container]["Meta"]["TotalCount"]
+
+    # ###
+    # # Parcourt chacune des réponses de l'API
+    # ###
+    # for flight_range in flight_data["data"]:        
         
-        ###
-        # Vérifie le compte des vols reçus dans un intervalle de 4h 
-        # par rapport au checksum envoyé par l'API
-        ###
-        new_flight_endpoint = flight_range[data_container]["Meta"]["Link"][0]["@Href"].split("?")[0]
+    #     ###
+    #     # Vérifie le compte des vols reçus dans un intervalle de 4h 
+    #     # par rapport au checksum envoyé par l'API
+    #     ###
+    #     new_flight_endpoint = flight_range[data_container]["Meta"]["Link"][0]["@Href"].split("?")[0]
 
-        if new_flight_endpoint != flight_endpoint:
-            if meta_total_count != table_total_count:
-                flight_endpoint_verif = flight_range[data_container]["Meta"]["Link"][0]["@Rel"]
-                logger.error(f"Attention, pour le endpoint {new_flight_endpoint} (vérif : {flight_endpoint_verif}) ! La longueur du tableau ({table_total_count}) n'est pas égale au compte total des métadonnées ({meta_total_count}).")
+    #     if new_flight_endpoint != flight_endpoint:
+    #         if meta_total_count != table_total_count:
+    #             flight_endpoint_verif = flight_range[data_container]["Meta"]["Link"][0]["@Rel"]
+    #             logger.error(f"Attention, pour le endpoint {new_flight_endpoint} (vérif : {flight_endpoint_verif}) ! La longueur du tableau ({table_total_count}) n'est pas égale au compte total des métadonnées ({meta_total_count}).")
 
-            flight_endpoint = new_flight_endpoint
-            table_total_count = 0
+    #         flight_endpoint = new_flight_endpoint
+    #         table_total_count = 0
 
-        table_total_count += len(flight_range[data_container]["Flights"]["Flight"])
-        meta_total_count = flight_range[data_container]["Meta"]["TotalCount"]
+    #     table_total_count += len(flight_range[data_container]["Flights"]["Flight"])
+    #     meta_total_count = flight_range[data_container]["Meta"]["TotalCount"]
 
-        ###
-        # Ajoute les données à aux résultats pour consolider les vols dans une unique liste
-        ###   
-        for flight in flight_range[data_container]["Flights"]["Flight"]:
-            consolidated_flight_data["flights"].append(flight)
+    #     ###
+    #     # Ajoute les données à aux résultats pour consolider les vols dans une unique liste
+    #     ###   
+    #     for flight in flight_range[data_container]["Flights"]["Flight"]:
+    #         consolidated_flight_data["flights"].append(flight)
 
     return consolidated_flight_data
 

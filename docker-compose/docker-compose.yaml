@@ -1,9 +1,8 @@
-version: "3.1"
-
 services: 
 # Database MySQL DB relationnelle
   mysql-db:
     hostname: mysql-db
+    container_name: mysql-db
     image: mysql:latest
     restart: always
     env_file:
@@ -26,13 +25,11 @@ services:
       - mongo-data:/data/db # endroit où les données de MongoDB sont stockées par défaut
       - mongo-config:/data/configdb
 
-# Volumes pour nos données
-# volumes:
-#   mysql-db-data: # {}
-#   mongo-data:
-#   mongo-config:
-#   mongo-data: 
-#   mongo-config:
+#Volumes pour nos données
+volumes:
+  mysql-db-data: # {}
+  mongo-data:
+  mongo-config:
 
 
 # Pour accéder à nos DB :

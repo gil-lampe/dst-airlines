@@ -3,9 +3,10 @@ from dst_airlines import utils
 from pymongo import MongoClient
 import os
 
-utils.setup_logging()
 
 def main():
+    utils.setup_logging()
+
     CURRENT_USER = os.getenv("CURRENT_USER")
 
     USER_USERNAME = os.getenv(f"{CURRENT_USER}_USERNAME")
@@ -18,7 +19,7 @@ def main():
             password = USER_PASSWORD
         )
 
-    mongodb.add_flights_data(client, db_name="DST-Airlines", collection_name="FlightStatusResource")
+    mongodb.add_flight_files(client, db_name="DST-Airlines", collection_name="FlightStatusResource")
 
 if __name__ == "__main__":
     main()
