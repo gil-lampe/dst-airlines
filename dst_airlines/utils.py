@@ -41,6 +41,8 @@ def load_env_variables() -> None:
     """Load environment variables declared into two files "public.env" (for public env. var. which can be shared) 
     and "private.env" (for private env. var. which should not be shared), both stored in the folder "env" located
     in the "env" folder at the project root  
+
+    To get the env. variable : `os.getenv("VAR_NAME")`
     """
     project_root = get_project_root_path()
     
