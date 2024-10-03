@@ -63,8 +63,8 @@ def taskflow():
     def collect_store_raw_flights_in_mongodb(prev_task=None):
 
         public_ip = utils.get_public_ip_address()
-        headers = utils.build_lh_api_headers(api_token, public_ip)
         api_token = utils.get_lh_api_token(client_id=client_id, client_secret=client_secret)
+        headers = utils.build_lh_api_headers(api_token, public_ip)
         
         flights = lufthansa_api_flights.fetch_departing_flights(airport_iata=airport_iata, headers=headers)
 
