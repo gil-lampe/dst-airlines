@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-pv
+  namespace: {{ .Values.namespace }}
+spec:
+  capacity:
+    storage: {{ .Values.postgresql.pv.storage }}
+  accessModes:
+  - ReadWriteMany
+  hostPath:
+    path: "/var/lib/postgresql/data"
+  storageClassName: manual

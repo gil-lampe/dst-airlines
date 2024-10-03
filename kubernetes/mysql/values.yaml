@@ -1,0 +1,29 @@
+replicaCount: 1
+
+image:
+  repository: mysql
+  tag: "8.0"
+  pullPolicy: IfNotPresent
+
+mysql:
+  rootPassword: rootpassword123
+  database: mydatabase
+  user: user123
+  password: password123
+
+service:
+  type: ClusterIP
+  port: 3306
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: local-path
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "500m"
