@@ -37,17 +37,21 @@ def test_logging():
         logger.exception("exception message")
 
 
-def load_env_variables() -> None:
+def load_env_variables(public_env_path: str=None, private_env_path: str=None) -> None:
     """Load environment variables declared into two files "public.env" (for public env. var. which can be shared) 
     and "private.env" (for private env. var. which should not be shared), both stored in the folder "env" located
     in the "env" folder at the project root  
 
     To get the env. variable : `os.getenv("VAR_NAME")`
+
+    Args:
+        public_env_path (str, optional): Path to the public environment variables. Defaults to None.
+        private_env_path (str, optional): Path to the private environment variables. Defaults to None.
     """
     project_root = get_project_root_path()
     
-    public_env_path = os.path.join(project_root, "env", "public.env")
-    private_env_path = os.path.join(project_root, "env", "private.env")
+    public_env_path = public_env_path if public_env_path else os.path.join(project_root, "dst_airlines", "env", "public.env")
+    private_env_path = private_env_path if private_env_path else os.path.join(project_root, "dst_airlines", "env", "private.env")
     
     load_dotenv(dotenv_path=public_env_path)
     load_dotenv(dotenv_path=private_env_path)
@@ -63,7 +67,7 @@ def get_project_root_path() -> str:
         str: Path to the project root
     """
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = script_dir.split("dst_airlines")[-2]
+    project_root = os.path.dirname(script_dir)
     return project_root
 
 

@@ -1,7 +1,6 @@
 from dst_airlines.database import mysql
 from dst_airlines import utils
 from dst_airlines.data import airports
-from sqlalchemy import Table, Column, Integer, String, ForeignKey, MetaData, create_engine, text, inspect
 import pandas as pd
 import os
 from logging import getLogger

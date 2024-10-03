@@ -10,7 +10,6 @@ from asyncio import sleep
 from uuid import uuid4
 from fastapi.middleware.cors import CORSMiddleware
 
-
 logger = getLogger(__name__)
 
 
@@ -63,12 +62,13 @@ class PredictionRequest(BaseModel):
     """Body to request a flight delay prediction.
 
     Args:
+
         arrival_iata_code (str): 3-letter IATA code of the arrival airport
-        scheduled_arrival_time (str): schedule time in UTC (format : )
+        scheduled_departure_utc_time (str): schedule departure time in UTC (format : YYYY-MM-DDThh:mmZ e.g., 2024-09-30T03:00Z)
         task_uuid (UUID): Automatically generated Airflow task UUID
     """
     arrival_iata_code: str
-    scheduled_arrival_time: str
+    scheduled_departure_utc_time: str
     task_uuid: UUID = Field(default_factory=uuid4)
 
 
@@ -178,6 +178,7 @@ async def get_root() -> dict:
     """Provides a welcome message when connecting on the API.
 
     Returns:
+
         dict: Simple message in a dictionary
     """
     return {"message": "Welcome to the prediction API of the DST Airlines project developped by Matthieu, Bruno and Gil!"}
@@ -207,7 +208,7 @@ async def post_predict_flight_delay(request: PredictionRequest, valid_credential
 
     url = f"http://localhost:8080/api/v1/dags/{dag_id}/dagRuns"
     headers = {"Content-Type": "application/json", "Authorization": "Basic " + base64.b64encode(b"airflow:airflow").decode("utf-8")}
-    data = {"dag_run_id": str(request.task_uuid)}
+    data = {"dag_run_id": str(request.task_uuid), "conf": {"arrival_iata_code": request.arrival_iata_code, "scheduled_departure_utc_time": request.scheduled_departure_utc_time}}
     try:
         async with aiohttp.ClientSession() as session:
             async with session.post(url, headers=headers, json=data) as response:
