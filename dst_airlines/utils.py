@@ -50,8 +50,8 @@ def load_env_variables(public_env_path: str=None, private_env_path: str=None) ->
     """
     project_root = get_project_root_path()
     
-    public_env_path = public_env_path if public_env_path else os.path.join(project_root, "dst_airlines", "env", "public.env")
-    private_env_path = private_env_path if private_env_path else os.path.join(project_root, "dst_airlines", "env", "private.env")
+    public_env_path = public_env_path if public_env_path else os.path.join(project_root, "env", "public.env")
+    private_env_path = private_env_path if private_env_path else os.path.join(project_root, "env", "private.env")
     
     load_dotenv(dotenv_path=public_env_path)
     load_dotenv(dotenv_path=private_env_path)
