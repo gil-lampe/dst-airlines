@@ -12,7 +12,7 @@ services:
     volumes:
       - mysql-db-data:/var/lib/mysql
     networks:
-      - airflow_dst_default
+      - airflow_default
   
 # Database Mongo DB non relationnelle
   mongo-db:
@@ -27,7 +27,7 @@ services:
       - mongo-data:/data/db # endroit où les données de MongoDB sont stockées par défaut
       - mongo-config:/data/configdb
     networks:
-      - airflow_dst_default 
+      - airflow_default 
 
 # Volumes pour nos données
 volumes:
