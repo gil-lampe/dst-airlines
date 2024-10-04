@@ -41,7 +41,7 @@ def prepair_data_to_ml():
         # 'Departure_ScheduledTimeUTC_DateTime',
         'Departure_ActualTimeLocal_DateTime',
         'Departure_ActualTimeUTC_DateTime',
-        # 'Departure_TimeStatus_Code',
+        # 'Departure_TimeStatus_Code', ##
         'Departure_TimeStatus_Definition',
         'Arrival_ScheduledTimeLocal_DateTime',
         # 'Arrival_ScheduledTimeUTC_DateTime',
@@ -49,8 +49,8 @@ def prepair_data_to_ml():
         # 'Arrival_ActualTimeUTC_DateTime',
         'Arrival_EstimatedTimeLocal_DateTime',
         'Arrival_EstimatedTimeUTC_DateTime',
-        'Departure_EstimatedTimeLocal_DateTime',
-        'Departure_EstimatedTimeUTC_DateTime',
+        # 'Departure_EstimatedTimeLocal_DateTime', ##
+        # 'Departure_EstimatedTimeUTC_DateTime', ##
         # 'Flight_DateTime',
         # 'Flight_DateTime_Hour',
         'Departure_Terminal_Name',
@@ -96,6 +96,8 @@ def prepair_data_to_ml():
     weather_df['Flight_DateTime'] = weather_df['Flight_DateTime'].dt.strftime('%Y-%m-%dT%H')#:%MZ')
 
     ### MERGE
+    flights_df = flights_df.rename(str, axis="columns")
+    weather_df = weather_df.rename(str, axis="columns")
     df = pd.merge(flights_df, weather_df,
                     left_on=['Arrival_AirportCode', 'Arrival_ScheduledTimeUTC_DateTime'],
                     right_on=['Airport_Code', 'Flight_DateTime'],
@@ -110,7 +112,7 @@ def prepair_data_to_ml():
         'Arrival_TimeStatus_Code',
         # 'Delay_minutes',
         'Flight_DateTime',
-        # 'Airport_Code',
+        'Airport_Code',
         'Latitude',
         'Longitude',
         # 'temperature_2m',
@@ -158,8 +160,8 @@ def prepair_data_to_ml():
     ]
 
     df = df.drop(columns=new_cols_drop, axis=1)
-    df = df.drop_duplicates(subset=['Delay_minutes', 'Airport_Code', 'temperature_2m'])
-    df = df.dropna(subset=['Airport_Code'])
+    df = df.drop_duplicates(subset=['Delay_minutes', 'temperature_2m'])
+    # df = df.dropna(subset=['temperature_2m'])
 
     df = pd.get_dummies(df)
 
@@ -260,14 +262,14 @@ def select_best_model(**kwargs):
     if best_score == score_dtr:
         print(f'DecisionTreeRegressor selected with score : {score_lr}')
         train_and_save_model(
-            LinearRegression(),
+            DecisionTreeRegressor(),
             X, y,
             '/app/clean_data/best_model.pickle'
         )
     else:
         print(f'RandomForestRegressor selected with score : {score_lr}')
         train_and_save_model(
-            LinearRegression(),
+            RandomForestRegressor(),
             X, y,
             '/app/clean_data/best_model.pickle'
         )
@@ -280,7 +282,7 @@ with DAG(
         'owner': 'airflow',
         'start_date': days_ago(1)
     },
-    tags=['training', 'regression', 'models', 'DST-airlines'],
+    tags=['training', 'regression', 'models'],
     catchup=False,
 ) as dag_1:
     
