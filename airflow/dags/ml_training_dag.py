@@ -280,7 +280,7 @@ with DAG(
         'owner': 'airflow',
         'start_date': days_ago(1)
     },
-    tags=['training', 'regression', 'models'],
+    tags=['training', 'regression', 'models', 'DST-airlines'],
     catchup=False,
 ) as dag_1:
     

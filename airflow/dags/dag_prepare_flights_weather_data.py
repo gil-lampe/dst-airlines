@@ -11,28 +11,28 @@ from pymongo import MongoClient
 import logging
 from pymongo.collection import Collection
 import sqlalchemy
+import os
 
 logger = logging.getLogger(__name__)
 
 airport_iata = "FRA"
 
-client_id=""
-client_secret=""
+client_id=os.getenv("CLIENT_ID")
+client_secret=os.getenv("CLIENT_SECRET")
 
-mongodb_host = "localhost"
+mongodb_host = "mongo-db"
 mongodb_port = 27017
-mongodb_username = ""
-mongodb_password = ""
+mongodb_username= os.getenv("MONGO_INITDB_ROOT_USERNAME")
+mongodb_password= os.getenv("MONGO_INITDB_ROOT_PASSWORD")
 mongodb_db_name = "DST-Airlines"
 collection_name = "FlightStatusResource"
 
-sql_host = ""
-sql_port = ""
-sql_database = ""
-sql_user = ""
-sql_password = ""
+sql_user = "root"
+sql_password = "password"
+sql_host = "mysql-db"
+sql_port = "3306"
+sql_database = "DST_AIRLINES"
 
-airport_file_path = ""
 
 def _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = "DST-Airlines", mongodb_host = "localhost", mongodb_port = 27017) -> Collection:
         mongo_client = MongoClient(
@@ -64,6 +64,7 @@ def taskflow():
 
         public_ip = utils.get_public_ip_address()
         api_token = utils.get_lh_api_token(client_id=client_id, client_secret=client_secret)
+        print(api_token)
         headers = utils.build_lh_api_headers(api_token, public_ip)
         
         flights = lufthansa_api_flights.fetch_departing_flights(airport_iata=airport_iata, headers=headers)
@@ -74,7 +75,7 @@ def taskflow():
 
     @task()
     def structure_store_flights_in_mysql(prev_task=None):
-        flights_collection = _get_collection_from_mongodb(mongodb_username=mongodb_username, mongodb_password=mongodb_password)
+        flights_collection = _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = mongodb_db_name, mongodb_host = mongodb_host, mongodb_port = mongodb_port)
 
         raw_flights = flights_collection.find()
 
