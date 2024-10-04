@@ -2,10 +2,11 @@ import requests
 import json
 import os
 import pandas as pd
-import mysql.connector
-from sqlalchemy import create_engine
+import pymysql
+import sqlalchemy
 from datetime import datetime
 
+from sklearn.impute import SimpleImputer
 from sklearn.model_selection import cross_val_score
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
@@ -35,98 +36,30 @@ def prepair_data_to_ml():
     flights_df = pd.read_sql_table(table_name="flights", con=engine)
     weather_df = pd.read_sql_table(table_name="weather_forecasts", con=engine)
 
-    # A COMMENTER : 
-    # flights_df = pd.read_csv("/app/clean_data/FRA_flightstatus_dep_flights_2024-09-24_conso_flatten.csv")
-    # weather_df = pd.read_csv("/app/clean_data/AA_hourly_weather_2024-09-24.csv")
-    
-    # cols_to_drop = [
-    #     # Colonnes horaires
-    #     'Departure_ScheduledTimeLocal_DateTime',
-    #     # 'Departure_ScheduledTimeUTC_DateTime',
-    #     'Departure_ActualTimeLocal_DateTime',
-    #     'Departure_ActualTimeUTC_DateTime',
-    #     # 'Departure_TimeStatus_Code',
-    #     'Departure_TimeStatus_Definition',
-    #     'Arrival_ScheduledTimeLocal_DateTime',
-    #     # 'Arrival_ScheduledTimeUTC_DateTime',
-    #     'Arrival_ActualTimeLocal_DateTime',
-    #     # 'Arrival_ActualTimeUTC_DateTime',
-    #     'Arrival_EstimatedTimeLocal_DateTime',
-    #     'Arrival_EstimatedTimeUTC_DateTime',
-    #     'Departure_EstimatedTimeLocal_DateTime',
-    #     'Departure_EstimatedTimeUTC_DateTime',
-    #     # 'Flight_DateTime',
-    #     # 'Flight_DateTime_Hour',
-    #     # Terminaux
-    #     'Departure_Terminal_Name',
-    #     'Departure_Terminal_Gate',
-    #     'Arrival_Terminal_Name',
-    #     'Arrival_Terminal_Gate',
-    #     'ServiceType',
-    #     # Codes aéroports / avion etc
-    #     'Departure_AirportCode',
-    #     # 'Arrival_AirportCode',
-    #     'MarketingCarrier_AirlineID',
-    #     'MarketingCarrier_FlightNumber',
-    #     'OperatingCarrier_AirlineID',
-    #     'OperatingCarrier_FlightNumber',
-    #     'Equipment_AircraftCode',
-    #     'Equipment_AircraftRegistration',
-    #     'FlightStatus_Code',
-    #     # 'Airport_Code',
-    #     # Coordonnées
-    #     # 'Latitude',
-    #     # 'Longitude',
-    #     # Valeurs status = inutiles car nous cherchons à déterminer le retard, chiffré
-    #     'FlightStatus_Definition',
-    #     'Arrival_TimeStatus_Definition',
-    #     'FlightStatus_Definition'
-    # ]
-
-    # #### ETL : 
-    # flights_df = flights_df.drop(columns=cols_to_drop, axis=1)
-    # Conversion des dates pour ajout colonnes "Delay_minutes"
-    flights_df['Arrival_ScheduledTimeUTC_DateTime'] = pd.to_datetime(flights_df['Arrival_ScheduledTimeUTC_DateTime'])
-    flights_df['Arrival_ActualTimeUTC_DateTime'] = pd.to_datetime(flights_df['Arrival_ActualTimeUTC_DateTime'])
-    # Création de la colonne "Delay_minutes" cible de notre prédiction ML
-    flights_df['Delay_minutes'] = (flights_df['Arrival_ActualTimeUTC_DateTime'] - flights_df['Arrival_ScheduledTimeUTC_DateTime']).dt.total_seconds() / 60
-    # je supprime les lignes avec Delay_minutes vide
-    flights_df = flights_df.dropna(subset=['Delay_minutes'])
-    
-    # Conversion des dates en DateTime
-    flights_df['Arrival_ScheduledTimeUTC_DateTime'] = pd.to_datetime(flights_df['Arrival_ScheduledTimeUTC_DateTime']).dt.floor('h').dt.tz_localize(None)
-    weather_df['Flight_DateTime_Hour'] = pd.to_datetime(weather_df['Flight_DateTime']).dt.floor('h').dt.tz_localize(None)
-    
-    df = pd.merge(flights_df, weather_df,
-                  left_on=['Arrival_AirportCode', 'Arrival_ScheduledTimeUTC_DateTime'],
-                  right_on=['Airport_Code', 'Flight_DateTime_Hour'],
-                  how="left")
-
     cols_to_drop = [
-        # Colonnes horaires
         'Departure_ScheduledTimeLocal_DateTime',
-        'Departure_ScheduledTimeUTC_DateTime',
+        # 'Departure_ScheduledTimeUTC_DateTime',
         'Departure_ActualTimeLocal_DateTime',
         'Departure_ActualTimeUTC_DateTime',
+        # 'Departure_TimeStatus_Code',
+        'Departure_TimeStatus_Definition',
         'Arrival_ScheduledTimeLocal_DateTime',
-        'Arrival_ScheduledTimeUTC_DateTime',
+        # 'Arrival_ScheduledTimeUTC_DateTime',
         'Arrival_ActualTimeLocal_DateTime',
-        'Arrival_ActualTimeUTC_DateTime',
+        # 'Arrival_ActualTimeUTC_DateTime',
         'Arrival_EstimatedTimeLocal_DateTime',
         'Arrival_EstimatedTimeUTC_DateTime',
         'Departure_EstimatedTimeLocal_DateTime',
         'Departure_EstimatedTimeUTC_DateTime',
-        'Flight_DateTime',
-        'Flight_DateTime_Hour',
-        # Terminaux
+        # 'Flight_DateTime',
+        # 'Flight_DateTime_Hour',
         'Departure_Terminal_Name',
         'Departure_Terminal_Gate',
         'Arrival_Terminal_Name',
         'Arrival_Terminal_Gate',
         'ServiceType',
-        # Codes aéroports / avion etc
         'Departure_AirportCode',
-        'Arrival_AirportCode',
+        # 'Arrival_AirportCode',
         'MarketingCarrier_AirlineID',
         'MarketingCarrier_FlightNumber',
         'OperatingCarrier_AirlineID',
@@ -135,23 +68,106 @@ def prepair_data_to_ml():
         'Equipment_AircraftRegistration',
         'FlightStatus_Code',
         # 'Airport_Code',
-        # Coordonnées
-        'Latitude',
-        'Longitude',
+        # 'Latitude',
+        # 'Longitude',
         # Valeurs status = inutiles car nous cherchons à déterminer le retard, chiffré
         'FlightStatus_Definition',
         'Arrival_TimeStatus_Definition',
         'FlightStatus_Definition'
     ]
-    
-    df = df.drop(cols_to_drop, axis=1)
-    df = df.drop_duplicates()
-    df = df.dropna(subset=['Airport_Code'], how='all')
-    
-    # Encodage des variables catégorielles
+
+    flights_df = flights_df.drop(cols_to_drop, axis=1)
+    flights_df = flights_df.dropna(subset=['Arrival_ActualTimeUTC_DateTime'])
+
+    ### ETL flights_df
+    # Convertir en format datetime avec fuseau horaire (UTC si les données sont en UTC)
+    flights_df['Arrival_ScheduledTimeUTC_DateTime'] = pd.to_datetime(flights_df['Arrival_ScheduledTimeUTC_DateTime'], utc=True)
+    flights_df['Arrival_ActualTimeUTC_DateTime'] = pd.to_datetime(flights_df['Arrival_ActualTimeUTC_DateTime'], utc=True)
+    # Calculer le délai avant toute modification de format de date
+    flights_df['Delay_minutes'] = (flights_df['Arrival_ActualTimeUTC_DateTime'] - flights_df['Arrival_ScheduledTimeUTC_DateTime']).dt.total_seconds() / 60
+    # Convertir ensuite les dates au format souhaité YYYY-mm-ddTHH-MM
+    flights_df['Arrival_ScheduledTimeUTC_DateTime'] = flights_df['Arrival_ScheduledTimeUTC_DateTime'].dt.strftime('%Y-%m-%dT%H')#-%M')
+    flights_df['Arrival_ActualTimeUTC_DateTime'] = flights_df['Arrival_ActualTimeUTC_DateTime'].dt.strftime('%Y-%m-%dT%H')#-%M')
+
+    ### ETL weather_df
+    # Convertir en format datetime et appliquer le fuseau horaire UTC
+    weather_df['Flight_DateTime'] = pd.to_datetime(weather_df['Flight_DateTime']).dt.tz_localize('UTC')
+    # Convertir au format souhaité YYYY-mm-ddTHH-MM
+    weather_df['Flight_DateTime'] = weather_df['Flight_DateTime'].dt.strftime('%Y-%m-%dT%H')#:%MZ')
+
+    ### MERGE
+    df = pd.merge(flights_df, weather_df,
+                    left_on=['Arrival_AirportCode', 'Arrival_ScheduledTimeUTC_DateTime'],
+                    right_on=['Airport_Code', 'Flight_DateTime'],
+                    how="left")
+
+    new_cols_drop = [
+        'Departure_ScheduledTimeUTC_DateTime',
+        'Departure_TimeStatus_Code',
+        'Arrival_AirportCode',
+        'Arrival_ScheduledTimeUTC_DateTime',
+        'Arrival_ActualTimeUTC_DateTime',
+        'Arrival_TimeStatus_Code',
+        # 'Delay_minutes',
+        'Flight_DateTime',
+        # 'Airport_Code',
+        'Latitude',
+        'Longitude',
+        # 'temperature_2m',
+        # 'relative_humidity_2m',
+        # 'dew_point_2m',
+        # 'apparent_temperature',
+        # 'precipitation_probability',
+        # 'precipitation',
+        # 'rain',
+        # 'showers',
+        # 'snowfall',
+        # 'snow_depth',
+        # 'weather_code',
+        # 'pressure_msl',
+        # 'surface_pressure',
+        # 'cloud_cover',
+        # 'cloud_cover_low',
+        # 'cloud_cover_mid',
+        # 'cloud_cover_high',
+        # 'visibility',
+        # 'evapotranspiration',
+        # 'et0_fao_evapotranspiration',
+        # 'vapour_pressure_deficit',
+        # 'wind_speed_10m',
+        # 'wind_speed_80m',
+        # 'wind_speed_120m',
+        # 'wind_speed_180m',
+        # 'wind_direction_10m',
+        # 'wind_direction_80m',
+        # 'wind_direction_120m',
+        # 'wind_direction_180m',
+        # 'wind_gusts_10m',
+        # 'temperature_80m',
+        # 'temperature_120m',
+        # 'temperature_180m',
+        # 'soil_temperature_0cm',
+        # 'soil_temperature_6cm',
+        # 'soil_temperature_18cm',
+        # 'soil_temperature_54cm',
+        # 'soil_moisture_0_to_1cm',
+        # 'soil_moisture_1_to_3cm',
+        # 'soil_moisture_3_to_9cm',
+        # 'soil_moisture_9_to_27cm',
+        # 'soil_moisture_27_to_81cm'
+    ]
+
+    df = df.drop(columns=new_cols_drop, axis=1)
+    df = df.drop_duplicates(subset=['Delay_minutes', 'Airport_Code', 'temperature_2m'])
+    df = df.dropna(subset=['Airport_Code'])
+
     df = pd.get_dummies(df)
-    
+
+    df = df.dropna()
+
     features = df.drop(['Delay_minutes'], axis=1)
+    features.columns = features.columns.astype(str)
+
     target = df['Delay_minutes']
     
     return features, target
@@ -168,6 +184,11 @@ def compute_model_score(model, X, y):
     Returns:
         float: le score moyen (plus la valeur est proche de 0, meilleur est le modèle)
     """
+    print(X.head())
+    X.to_csv(f'/app/clean_data/X{model}.csv', index=False)
+    print("\n\n\n\n")
+    print(y.head())
+    y.to_csv(f'/app/clean_data/y{model}.csv', index=False)
     cross_validation = cross_val_score(
         model,
         X,
