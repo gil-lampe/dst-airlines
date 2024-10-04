@@ -335,9 +335,9 @@ def predict_delay(input_flightdate: str, input_airportcode: str, airport_df: pd.
     #### ET LA IL ME FAUT DE L'AIDE POUR LA PREDICTION DE "Delay_minutes"
     model = load('best_model.pickle')
     features_predict = df.drop(columns=['Delay_minutes'])
-    prediction = model.predict(features_predict)
+    prediction = model.predict(features_predict)[0]
     ti.xcom_push(key='prediction', value=prediction)
-    return float(prediction[0])
+    return float(prediction)
 
 def first_task(**kwargs):
     print("Extracting data...")
@@ -355,7 +355,7 @@ with DAG(
         'owner': 'airflow',
         'start_date': days_ago(1),
     },
-    tags=['prediction', 'regression', 'models'],
+    tags=['prediction', 'DST-airlines'],
     catchup=False
 ) as dag:
 
@@ -386,4 +386,4 @@ with DAG(
         provide_context=True
     )
 
-get_data_group >> predict_delay_task
+    get_data_group >> predict_delay_task

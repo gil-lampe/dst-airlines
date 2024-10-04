@@ -4,13 +4,23 @@ from uuid import UUID
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-from logging import getLogger
+from logging import getLogger, basicConfig, INFO
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from asyncio import sleep
 from uuid import uuid4
 from fastapi.middleware.cors import CORSMiddleware
 
+basicConfig(level=INFO)
 logger = getLogger(__name__)
+
+## Example
+# dag_id = "example_dag"
+# task_id = "load_task"
+# xcom_key = "final_result"
+
+dag_id = "predict_delay"
+prediction_task_id = "predict_delay"
+prediction_xcom_key = "prediction"
 
 
 # TODO: stocker les utilisateurs dans une table MySQL
@@ -20,6 +30,7 @@ userdb = {"alice": "wonderland",
 
 # TODO: stocker les admin dans une table MySQL
 admindb = {"admin": "4dm1N"}
+
 
 app = FastAPI(openapi_tags=[
     {
@@ -175,7 +186,7 @@ def _add_user(username: str, password: str) -> bool:
 
 @app.get("/", tags=['home'])
 async def get_root() -> dict:
-    """Provides a welcome message when connecting on the API.
+    """Get a welcome message when connecting on the API.
 
     Returns:
 
@@ -186,7 +197,7 @@ async def get_root() -> dict:
 
 @app.get("/health", status_code=200, tags=['home'])
 async def get_health_check() -> JSONResponse:
-    """Verifies that the API is working.
+    """Get a health check of the API.
 
     Returns:
 
@@ -196,50 +207,97 @@ async def get_health_check() -> JSONResponse:
 
 
 @app.post("/predict_flight_delay/", tags=["application"], responses=responses)
-async def post_predict_flight_delay(request: PredictionRequest, valid_credentials: bool = Depends(_verify_identity_user)):
+async def post_predict_flight_delay(request: PredictionRequest, valid_credentials: bool = Depends(_verify_identity_user)) -> JSONResponse:
+    """Post a request to get a flight delay prediction (in minutes) based on the provided information 
+
+    Args:
+
+        request (PredictionRequest): Body of the request
+
+    Raises:
+
+        HTTPException: Error 401 - Authentication failed - username does not exist or match with password
+        HTTPException: Error 500 - Internal Server Error - an unexpected error occurred
+
+    Returns:
+
+        JSONResponse: Prediction (in minutes) in JSON format {"state": state, "prediction": prediction, "message": message}
+    """
     if not valid_credentials:
+        logger.error("Error 401 - Authentication failed - username does not exist or match with password.")
         raise HTTPException(status_code=401,
                             detail="Authentication failed - username does not exist or match with password.")
-    
-    # TODO: Ajouter le dag_id de la prédiction
-    dag_id = "example_dag"
-    task_id = "load_task"
-    xcom_key = "final_result"
 
     url = f"http://localhost:8080/api/v1/dags/{dag_id}/dagRuns"
     headers = {"Content-Type": "application/json", "Authorization": "Basic " + base64.b64encode(b"airflow:airflow").decode("utf-8")}
     data = {"dag_run_id": str(request.task_uuid), "conf": {"arrival_iata_code": request.arrival_iata_code, "scheduled_departure_utc_time": request.scheduled_departure_utc_time}}
+    
     try:
         async with aiohttp.ClientSession() as session:
+            logger.info(f"Request to be sent to the {url = } with the following data : dag_run_id = {str(request.task_uuid)} | {request.arrival_iata_code = } | {request.scheduled_departure_utc_time = }.")
             async with session.post(url, headers=headers, json=data) as response:
-                response_data = await _handle_airflow_api_response(response)            
+                logger.info(f"Request sent to the {url = } to trigger the DAG ({dag_id = }), waiting for the response.")
+                response_data = await _handle_airflow_api_response(response)
+            
+            logger.info(f"DAG ({dag_id = }) triggered.")
 
             state = response_data["state"]
             count = 0
-            max_count = 20
+            max_count = 5 * 60
             url_get_state = f"{url}/{request.task_uuid}"
 
             while state not in ["success", "failed"] and count < max_count :
                 count += 1
+                logger.info(f"{state = } not yet either successful of failed, waiting 1s ({count}s / {max_count}s)")
                 await sleep(1)
+
+                logger.info(f"Request to be sent to the {url_get_state = }")
                 async with session.get(url_get_state, headers=headers) as response:
+                    logger.info(f"Request sent to the {url_get_state = }, waiting for the response.")
                     response_data = await _handle_airflow_api_response(response)
                 
                 state = response_data["state"]
+                logger.info(f"{state = } of the {dag_id = } for the dag_run_id = {str(request.task_uuid)}.")
 
-            url_get_xcom = f"{url}/{request.task_uuid}/taskInstances/{task_id}/xcomEntries/{xcom_key}"
-            
-            async with session.get(url_get_xcom, headers=headers) as response:
-                response_data = await _handle_airflow_api_response(response)
+            if state == "success":
+                url_get_xcom = f"{url}/{request.task_uuid}/taskInstances/{prediction_task_id}/xcomEntries/{prediction_xcom_key}"
+                
+                logger.info(f"Request to be sent to the {url_get_state = } to collect result from XCom.")
+                async with session.get(url_get_xcom, headers=headers) as response:
+                    logger.info(f"Request to be sent to the {url_get_state = } to collect the prediction from XCom, waiting for the response.")
+                    response_data = await _handle_airflow_api_response(response)
 
-            return JSONResponse(content={"value": f"{response_data['value']}"})
-
+                status_code = 200
+                prediction = response_data['value']
+                message = "The prediction was successful, please check the value associated to the key 'prediction' to get it."
+                logger.info(f"{prediction = } retrived from Airflow, returning the value")
+            else:
+                status_code = 400
+                prediction = ""                
+                message = "The prediction failed, please check that the provided data are correct."
+            return JSONResponse(status_code=status_code, content={"state": state, "prediction": f"{prediction}", "message": message})
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: An unexpected error occurred. {e}")
+        raise HTTPException(status_code=500, detail=f"Internal Server Error - an unexpected error occurred. {e}")
 
 
 @app.post("/add_user/", tags=["administration"], responses=responses)
-async def post_add_user(request: UserCreationRequest, valid_credentials: bool = Depends(_verify_identity_admin)):
+async def post_add_user(request: UserCreationRequest, valid_credentials: bool = Depends(_verify_identity_admin)) -> JSONResponse:
+    """Post a request to add a new user to the user database
+
+    Args:
+
+        request (UserCreationRequest): Body of the request to add a new user
+
+    Raises:
+
+        HTTPException: Error 400 - Bad request - username already exists in the database
+        HTTPException: Error 401 - Authentication failed - username = {provided username} does not exist or match with password
+
+    Returns:
+
+        JSONResponse: Confirmation message in JSON format {"message": f"Success - username = {provided username} successfully addded."}
+    """
     if not valid_credentials:
         raise HTTPException(status_code=401,
                             detail="Authentication failed - username does not exist or match with password")
