@@ -5,7 +5,7 @@ PROJECT_DIR=$(dirname "$CURRENT_DIR")
 echo "$CURRENT_DIR"
 echo "$PROJECT_DIR"
 
-source "$PROJECT_DIR/dst_airlines/env/private.env"
+source "$PROJECT_DIR/env/private.env"
 
 # Lancement des conteneurs docker-compose
 docker compose up -d

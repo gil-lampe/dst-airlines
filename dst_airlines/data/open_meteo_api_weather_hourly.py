@@ -16,26 +16,6 @@ URL = os.getenv("URL_API_OPEN_METEO")
 
 logger = logging.getLogger(__name__)
 
-# Récupérer les coordonnées longitude/latitude des aéroports depuis airports_df
-# def get_coordinates(airport_code, airports_df):
-#     ''' Get latitude, longitude from airports_df with flights_df AirportCode
-    
-#     Args :
-#     airport_code (str) : 3 letters to indicate which Airport is chosen
-#     airports_df (df) : /home/sanou/DST-Airlines/data/4_external/airport_names.csv
-    
-#     Returns :
-#     latitude (float) : latitude of the Airport
-#     longitude (float) : longitude of the Airport
-#     '''
-#     airport = airports_df[airports_df['iata_code'] == airport_code]
-#     if not airport.empty:
-#         latitude = airport.iloc[0]['latitude_deg']
-#         longitude = airport.iloc[0]['longitude_deg']
-#         return latitude, longitude
-#     else:
-#         return None, None
-
 
 def fetch_weather_data(airport_codes: List[str], latitudes: List[str], longitudes: List[str], times: List[str]):
     
