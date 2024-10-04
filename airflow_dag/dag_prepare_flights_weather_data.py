@@ -68,7 +68,7 @@ def taskflow():
         
         flights = lufthansa_api_flights.fetch_departing_flights(airport_iata=airport_iata, headers=headers)
 
-        flights_collection = _get_collection_from_mongodb(mongodb_username=mongodb_username, mongodb_password=mongodb_password)
+        flights_collection = _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = mongodb_db_name, mongodb_host = mongodb_host, mongodb_port = mongodb_port)
 
         mongodb.add_flight_dict(flights, flights_collection)
 

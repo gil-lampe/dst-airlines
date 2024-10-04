@@ -27,7 +27,7 @@ def taskflow():
         table_name = "airports"
 
         logger.info(f"Starting the insertion of airports data into {table_name = }.")
-        mysql.upload_data_in_mysql(data=airports_df, table="airports", sql_user=sql_user, sql_password=sql_password)
+        mysql.upload_data_in_mysql(data=airports_df, table=table_name, sql_user=sql_user, sql_password=sql_password)
 
     collect_structure_store_airports_in_mysql()
 

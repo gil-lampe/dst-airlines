@@ -6,7 +6,7 @@ services:
     image: mysql:latest
     restart: always
     env_file:
-      - ../env/private.env
+      - ../dst_airlines/env/private.env
     ports:
       - "3306:3306" # "3307:3306"
     volumes:
@@ -18,7 +18,7 @@ services:
     image: mongo:latest
     restart: always
     env_file:
-      - ../env/private.env
+      - ../dst_airlines/env/private.env
     ports:
       - "27018:27017"
     volumes:
