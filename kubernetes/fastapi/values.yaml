@@ -1,6 +1,6 @@
 namespace: airlines
-replicaCount: 3
-image: datascientest/fastapi:1.0.0
+replicaCount: 1
+image: ducroc/fastapi-airlines:v1
 service:
   name: fastapi-service
   port: 80
@@ -18,7 +18,7 @@ tls:
   hosts: fastapi.dst-airlines.dns-dynamic.net
 
 hpa:
-  minReplicas: 1
+  minReplicas: 2
   maxReplicas: 5
   targetCPUUtilizationPercentage: 80
   targetMemoryUtilizationPercentage: 70
