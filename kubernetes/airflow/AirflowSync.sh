@@ -1,22 +1,15 @@
 #!/bin/bash
 
-# NAMESPACE="airflow"
-# admin_env="admin"
-# pg_user="admin"
-# pg_pw="postgres"
-# NAMESPACE=airlines
-# RELEASE_NAME=airflow
-
 kubectl create namespace airlines
 
-kubectl apply -f pv-dags.yaml -n airlines
-kubectl apply -f pvc-dags.yaml -n airlines
-kubectl apply -f pv-logs.yaml -n airlines
-kubectl apply -f pvc-logs.yaml -n airlines
+kubectl apply -f ./airflow/pv-dags.yaml -n airlines
+kubectl apply -f ./airflow/pvc-dags.yaml -n airlines
+kubectl apply -f ./airflow/pv-logs.yaml -n airlines
+kubectl apply -f ./airflow/pvc-logs.yaml -n airlines
 
 sleep 3
 
-helm install airflow apache-airflow/airflow -f override.yaml \
+helm install airflow apache-airflow/airflow -f ./airflow/override.yaml \
 --namespace airlines \
 --set airflow.image.repository=glampe/dst_airlines_custom_airflow \
 --set airflow.image.tag=0.1.0 \
@@ -28,6 +21,11 @@ helm install airflow apache-airflow/airflow -f override.yaml \
 --set airflow.extraAnnotations."prometheus.io/scrape"="true" \
 --set airflow.extraAnnotations."prometheus.io/port"="8080"
 
+# Pour port-forward le service, exécutez la commande suivante :
+
+# kubectl port-forward svc/airflow-webserver 8080:8080 --namespace airlines
+
+
 #Installation : 
 
 # ssh-keygen -t rsa -b 4096 -C "remiducroc@gmail.com"
@@ -35,7 +33,6 @@ helm install airflow apache-airflow/airflow -f override.yaml \
 # cat temp.txt
 # cat airflow.pub
 
-# kubectl port-forward svc/airflow-webserver 8080:8080 --namespace airlines
 
 
 

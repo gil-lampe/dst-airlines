@@ -1,7 +1,7 @@
 kubectl create namespace airlines
 helm install mongodb ./mongo-DB/ -n airlines
-helm helm install mysql ./mysql/ -n airlines
-helm helm install fastapi ./fastapi/ -n airlines
+helm install mysql ./mysql/ -n airlines
+helm install fastapi ./fastapi/ -n airlines
 bash ./airflow/AirflowSync.sh
 
 
