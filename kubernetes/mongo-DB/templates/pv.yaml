@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ .Release.Name }}-pv{{ .Release.Namespace }}
+  name: {{ .Release.Name }}-pv-{{ .Release.Namespace }}
 spec:
   capacity:
     storage: {{ .Values.persistence.size }}
@@ -9,4 +9,4 @@ spec:
     - ReadWriteOnce  
   storageClassName: {{ .Values.persistence.storageClass }}
   hostPath:
-    path: /mnt/data/mongodb-{{ .Release.Namespace }}
+    path: /mnt/data/mongodb
