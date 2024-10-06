@@ -22,8 +22,8 @@ client_secret=os.getenv("CLIENT_SECRET")
 
 mongodb_host = "mongo-db"
 mongodb_port = 27017
-mongodb_username= os.getenv("MONGO_INITDB_ROOT_USERNAME")
-mongodb_password= os.getenv("MONGO_INITDB_ROOT_PASSWORD")
+mongodb_username= "admin"
+mongodb_password= "password123"
 mongodb_db_name = "DST_AIRLINES"
 collection_name = "FlightStatusResource"
 
