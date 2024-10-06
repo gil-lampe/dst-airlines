@@ -9,8 +9,7 @@
 .DS_Store
 
 # Le override de airflow
-
-*/airflow/override.yaml
+override.yaml
 
 # vim
 *.swp
