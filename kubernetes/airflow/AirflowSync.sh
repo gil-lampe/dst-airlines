@@ -19,8 +19,7 @@ sleep 3
 echo " -- End : Sleep 3s -- "
 
 echo " -- Start : Install Airflow -- "
-helm upgrade --install airflow apache-airflow/airflow -f ./airflow/override.yaml \
-  --namespace airlines
+helm upgrade --install airflow apache-airflow/airflow -f ./airflow/override.yaml --namespace airlines
 echo " -- End : Install Airflow -- "
 
 # Pour port-forward le service, exécutez la commande suivante :
