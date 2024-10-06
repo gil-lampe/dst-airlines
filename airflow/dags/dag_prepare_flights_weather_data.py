@@ -28,7 +28,7 @@ mongodb_db_name = "DST_AIRLINES"
 collection_name = "FlightStatusResource"
 
 sql_user = "root"
-sql_password = "password"
+sql_password = "rootpassword123"
 sql_host = "mysql-db"
 sql_port = "3306"
 sql_database = "DST_AIRLINES"
