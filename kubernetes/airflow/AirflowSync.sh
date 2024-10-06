@@ -32,9 +32,9 @@ helm install airflow apache-airflow/airflow -f ./airflow/override.yaml \
 #Installation : 
 
 # ssh-keygen -t rsa -b 4096 -C "remiducroc@gmail.com"
-# base64 airflow -w 0 > temp.txt
+# base64 key.private -w 0 > temp.txt
 # cat temp.txt
-# cat airflow.pub
+# cat key.pub
 
 
 
