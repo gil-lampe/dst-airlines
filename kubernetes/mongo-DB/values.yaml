@@ -12,6 +12,7 @@ mongodbPassword: password123
 mongodbDatabase: mydatabase
 
 service:
+  name: mongo-db
   type: ClusterIP
   port: 27017
 

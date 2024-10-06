@@ -15,7 +15,7 @@ sleep 3
 helm upgrade --install airflow apache-airflow/airflow -f ./airflow/override.yaml \
   --namespace airlines \
   --set images.airflow.repository=glampe/dst_airlines_custom_airflow \
-  --set images.airflow.tag=0.1.0 \
+  --set images.airflow.tag=0.1.1 \
   --set dags.persistence.enabled=false \
   --set dags.gitSync.enabled=true \
   --set dags.persistence.existingClaim=airflow-pvc-dags \

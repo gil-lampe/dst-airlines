@@ -7,11 +7,12 @@ image:
 
 mysql:
   rootPassword: rootpassword123
-  database: mydatabase
+  database: DST_AIRLINES
   user: user123
   password: password123
 
 service:
+  name: mysql-db
   type: ClusterIP
   port: 3306
 
