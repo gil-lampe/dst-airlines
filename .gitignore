@@ -8,6 +8,10 @@
 # Mac OS-specific storage files
 .DS_Store
 
+# Le override de airflow
+
+*/airflow/override.yaml
+
 # vim
 *.swp
 *.swo

@@ -1,7 +1,14 @@
 kubectl create namespace airlines
+echo "Start the creation of MongoDB"
 helm install mongodb ./mongo-DB/ -n airlines
+echo "Creation of MongoDB done"
+echo "Start the creation of MySQL"
 helm install mysql ./mysql/ -n airlines
+echo "Creation of MySQL done"
+echo "Start the creation of FastAPI"
 helm install fastapi ./fastapi/ -n airlines
+echo "Creation of FastAPI done"
+echo "Start the creation of Airflow"
 bash ./airflow/AirflowSync.sh
 
 
