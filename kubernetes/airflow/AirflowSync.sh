@@ -10,8 +10,6 @@ kubectl create namespace airlines
 echo " -- End : Create namespace airlines -- "
 
 echo " -- Start : Apply PV / PVC -- "
-kubectl apply -f ./airflow/pv-dags.yaml -n airlines
-kubectl apply -f ./airflow/pvc-dags.yaml -n airlines
 kubectl apply -f ./airflow/pv-logs.yaml -n airlines
 kubectl apply -f ./airflow/pvc-logs.yaml -n airlines
 echo " -- End : Apply PV / PVC -- "
@@ -22,16 +20,7 @@ echo " -- End : Sleep 3s -- "
 
 echo " -- Start : Install Airflow -- "
 helm upgrade --install airflow apache-airflow/airflow -f ./airflow/override.yaml \
-  --namespace airlines \
-  --set images.airflow.repository=glampe/dst_airlines_custom_airflow \
-  --set images.airflow.tag=0.1.1 \
-  --set dags.persistence.enabled=false \
-  --set dags.gitSync.enabled=true \
-  --set dags.persistence.existingClaim=airflow-pvc-dags \
-  --set logs.persistence.enabled=true \
-  --set logs.persistence.existingClaim=airflow-pvc-logs \
-  --set airflow.extraAnnotations."prometheus.io/scrape"="true" \
-  --set airflow.extraAnnotations."prometheus.io/port"="8090"
+  --namespace airlines
 echo " -- End : Install Airflow -- "
 
 # Pour port-forward le service, exécutez la commande suivante :
