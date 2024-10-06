@@ -1,5 +1,8 @@
 #!/bin/bash
 
+helm repo add apache-airflow https://airflow.apache.org
+helm repo update
+
 kubectl create namespace airlines
 
 kubectl apply -f ./airflow/pv-dags.yaml -n airlines
