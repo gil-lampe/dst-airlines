@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: {{ .Values.service.name }}
   labels:
-    app: {{ .Release.Name }}-mysql
+    app: {{ .Release.Name }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -11,4 +11,4 @@ spec:
       targetPort: 3306
       protocol: TCP
   selector:
-    app: {{ .Release.Name }}-mysql
+    app: {{ .Release.Name }}

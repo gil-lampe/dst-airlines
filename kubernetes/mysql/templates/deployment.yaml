@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-mysql
+  name: {{ .Release.Name }}
   labels:
-    app: {{ .Release.Name }}-mysql
+    app: {{ .Release.Name }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-mysql
+      app: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-mysql
+        app: {{ .Release.Name }}
     spec:
       containers:
         - name: mysql
@@ -22,7 +22,7 @@ spec:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-mysql-secret
+                  name: {{ .Release.Name }}-secret
                   key: rootpassword
             - name: MYSQL_DATABASE
               value: {{ .Values.mysql.database }}
@@ -31,15 +31,15 @@ spec:
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-mysql-secret
+                  name: {{ .Release.Name }}-secret
                   key: password
-          ports:
-            - containerPort: 3306
-              name: mysql
-          volumeMounts:
-            - name: mysql-persistent-storage
-              mountPath: /var/lib/mysql
-      volumes:
+      ports:
+        - containerPort: 3306
+          name: mysql
+      volumeMounts:
         - name: mysql-persistent-storage
-          persistentVolumeClaim:
-            claimName: {{ .Release.Name }}-mysql-pvc
+          mountPath: /var/lib/mysql
+  volumes:
+    - name: mysql-persistent-storage
+      persistentVolumeClaim:
+        claimName: {{ .Release.Name }}-pvc

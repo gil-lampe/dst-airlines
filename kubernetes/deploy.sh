@@ -13,3 +13,6 @@ bash ./airflow/AirflowSync.sh
 
 #Avoir l'ip cluster
 #kubectl get nodes -o wide
+
+# Nécessité d'avoir une storageClass de type local-path, pour le faire sur minikube (https://minikube.sigs.k8s.io/docs/tutorials/local_path_provisioner/) :
+# minikube addons enable storage-provisioner-rancher

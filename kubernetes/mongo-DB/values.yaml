@@ -5,9 +5,10 @@ image:
   tag: "4.4.6"
   pullPolicy: IfNotPresent
 
-mongodbUsername: admin
-mongodbPassword: password123
-mongodbDatabase: mydatabase
+mongodb:
+  mongodbUsername: admin
+  mongodbPassword: password123
+  mongodbDatabase: DST_AIRLINES
 
 service:
   name: mongo-db
