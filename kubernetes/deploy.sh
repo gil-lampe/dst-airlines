@@ -1,3 +1,5 @@
+#! /bin/bash
+
 kubectl create namespace airlines
 echo " -- Start the creation of MongoDB -- "
 helm install mongodb ./mongo-DB/ -n airlines
@@ -10,13 +12,16 @@ helm install fastapi ./fastapi/ -n airlines
 echo " -- Creation of FastAPI done -- "
 echo " -- Start the creation of Airflow -- "
 bash ./airflow/AirflowSync.sh
+echo " -- Start the creation of Prometheus/Grafana -- "
+bash ./prometheus_grafana/install.sh
+echo " -- Creation of Prometheus/Grafana done -- "
 
 
 # Post Forwarding du webserver
 
 #kubectl port-forward svc/fastapi-service 8000:80 -n airlines
-
 #kubectl port-forward svc/airflow-webserver 8080:8080 --namespace airlines
+#kubectl port-forward svc/prometheus-server 9090:80 -n airlines 
 
 #Avoir l'ip cluster
 #kubectl get nodes -o wide
