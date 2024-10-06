@@ -22,7 +22,7 @@ spec:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-secret
+                  name: {{ .Release.Name }}-secret-{{ .Release.Namespace }}
                   key: rootpassword
             - name: MYSQL_DATABASE
               value: {{ .Values.mysql.database }}
@@ -31,7 +31,7 @@ spec:
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}-secret
+                  name: {{ .Release.Name }}-secret-{{ .Release.Namespace }}
                   key: password
           ports:
             - containerPort: 3306
