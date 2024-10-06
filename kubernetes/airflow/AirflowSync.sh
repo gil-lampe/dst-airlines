@@ -12,7 +12,7 @@ kubectl apply -f ./airflow/pvc-logs.yaml -n airlines
 
 sleep 3
 
-helm install airflow apache-airflow/airflow -f ./airflow/override.yaml \
+helm upgrade --install airflow apache-airflow/airflow -f ./airflow/override.yaml \
 --namespace airlines \
 --set airflow.image.repository=glampe/dst_airlines_custom_airflow \
 --set airflow.image.tag=0.1.0 \

@@ -277,7 +277,7 @@ with DAG(
     schedule_interval=None, 
     default_args={
         'owner': 'airflow',
-        'start_date': days_ago(1)
+        'start_date': days_ago(1),
     },
     tags=['prediction', 'DST_Airlines'],
     catchup=False
@@ -300,7 +300,7 @@ with DAG(
 
         get_flight_data = PythonOperator(
             task_id='get_flight_data',
-            python_callable=fetch_future_flight_data
+            python_callable=fetch_future_flight_data,
             # op_kwargs={}
             provide_context=True
         )
