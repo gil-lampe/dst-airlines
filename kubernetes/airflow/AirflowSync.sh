@@ -1,17 +1,26 @@
 #!/bin/bash
 
+echo " -- Start : Add and update apache airflow -- "
 helm repo add apache-airflow https://airflow.apache.org
 helm repo update
+echo " -- End : Create namespace airlines -- "
 
+echo " -- Start : Create namespace airlines -- "
 kubectl create namespace airlines
+echo " -- End : Create namespace airlines -- "
 
+echo " -- Start : Apply PV / PVC -- "
 kubectl apply -f ./airflow/pv-dags.yaml -n airlines
 kubectl apply -f ./airflow/pvc-dags.yaml -n airlines
 kubectl apply -f ./airflow/pv-logs.yaml -n airlines
 kubectl apply -f ./airflow/pvc-logs.yaml -n airlines
+echo " -- End : Apply PV / PVC -- "
 
+echo " -- Start : Sleep 3s -- "
 sleep 3
+echo " -- End : Sleep 3s -- "
 
+echo " -- Start : Install Airflow -- "
 helm upgrade --install airflow apache-airflow/airflow -f ./airflow/override.yaml \
   --namespace airlines \
   --set images.airflow.repository=glampe/dst_airlines_custom_airflow \
@@ -22,7 +31,8 @@ helm upgrade --install airflow apache-airflow/airflow -f ./airflow/override.yaml
   --set logs.persistence.enabled=true \
   --set logs.persistence.existingClaim=airflow-pvc-logs \
   --set airflow.extraAnnotations."prometheus.io/scrape"="true" \
-  --set airflow.extraAnnotations."prometheus.io/port"="8080"
+  --set airflow.extraAnnotations."prometheus.io/port"="8090"
+echo " -- End : Install Airflow -- "
 
 # Pour port-forward le service, exécutez la commande suivante :
 
