@@ -13,16 +13,16 @@ kubectl apply -f ./airflow/pvc-logs.yaml -n airlines
 sleep 3
 
 helm upgrade --install airflow apache-airflow/airflow -f ./airflow/override.yaml \
---namespace airlines \
---set airflow.image.repository=glampe/dst_airlines_custom_airflow \
---set airflow.image.tag=0.1.0 \
---set dags.persistence.enabled=false \
---set dags.gitSync.enabled=true \
---set dags.persistence.existingClaim=airflow-pvc-dags \
---set logs.persistence.enabled=true \
---set logs.persistence.existingClaim=airflow-pvc-logs \
---set airflow.extraAnnotations."prometheus.io/scrape"="true" \
---set airflow.extraAnnotations."prometheus.io/port"="8080"
+  --namespace airlines \
+  --set images.airflow.repository=glampe/dst_airlines_custom_airflow \
+  --set images.airflow.tag=0.1.0 \
+  --set dags.persistence.enabled=false \
+  --set dags.gitSync.enabled=true \
+  --set dags.persistence.existingClaim=airflow-pvc-dags \
+  --set logs.persistence.enabled=true \
+  --set logs.persistence.existingClaim=airflow-pvc-logs \
+  --set airflow.extraAnnotations."prometheus.io/scrape"="true" \
+  --set airflow.extraAnnotations."prometheus.io/port"="8080"
 
 # Pour port-forward le service, exécutez la commande suivante :
 

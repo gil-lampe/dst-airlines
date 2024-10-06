@@ -265,44 +265,6 @@ def structure_departing_flights(file: str | dict, api_name: str) -> dict :
     
     consolidated_flight_data["flights"] = extract_flights_from_resources(flight_resources)
 
-
-
-    # ###
-    # # Prépare la vérification du compte des vols reçus dans un intervalle de 4h 
-    # # par rapport au checksum envoyé par l'API
-    # ###
-    # table_total_count = 0
-    # flight_endpoint = flight_data["data"][0][data_container]["Meta"]["Link"][0]["@Href"].split("?")[0]
-    # meta_total_count = flight_data["data"][0][data_container]["Meta"]["TotalCount"]
-
-    # ###
-    # # Parcourt chacune des réponses de l'API
-    # ###
-    # for flight_range in flight_data["data"]:        
-        
-    #     ###
-    #     # Vérifie le compte des vols reçus dans un intervalle de 4h 
-    #     # par rapport au checksum envoyé par l'API
-    #     ###
-    #     new_flight_endpoint = flight_range[data_container]["Meta"]["Link"][0]["@Href"].split("?")[0]
-
-    #     if new_flight_endpoint != flight_endpoint:
-    #         if meta_total_count != table_total_count:
-    #             flight_endpoint_verif = flight_range[data_container]["Meta"]["Link"][0]["@Rel"]
-    #             logger.error(f"Attention, pour le endpoint {new_flight_endpoint} (vérif : {flight_endpoint_verif}) ! La longueur du tableau ({table_total_count}) n'est pas égale au compte total des métadonnées ({meta_total_count}).")
-
-    #         flight_endpoint = new_flight_endpoint
-    #         table_total_count = 0
-
-    #     table_total_count += len(flight_range[data_container]["Flights"]["Flight"])
-    #     meta_total_count = flight_range[data_container]["Meta"]["TotalCount"]
-
-    #     ###
-    #     # Ajoute les données à aux résultats pour consolider les vols dans une unique liste
-    #     ###   
-    #     for flight in flight_range[data_container]["Flights"]["Flight"]:
-    #         consolidated_flight_data["flights"].append(flight)
-
     return consolidated_flight_data
 
 
