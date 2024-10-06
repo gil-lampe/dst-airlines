@@ -24,7 +24,7 @@ mongodb_host = "mongo-db"
 mongodb_port = 27017
 mongodb_username= os.getenv("MONGO_INITDB_ROOT_USERNAME")
 mongodb_password= os.getenv("MONGO_INITDB_ROOT_PASSWORD")
-mongodb_db_name = "DST-Airlines"
+mongodb_db_name = "DST_AIRLINES"
 collection_name = "FlightStatusResource"
 
 sql_user = "root"
@@ -34,7 +34,7 @@ sql_port = "3306"
 sql_database = "DST_AIRLINES"
 
 
-def _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = "DST-Airlines", mongodb_host = "localhost", mongodb_port = 27017) -> Collection:
+def _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = "DST_AIRLINES", mongodb_host = "localhost", mongodb_port = 27017) -> Collection:
         mongo_client = MongoClient(
                 host = mongodb_host,
                 port = mongodb_port,
