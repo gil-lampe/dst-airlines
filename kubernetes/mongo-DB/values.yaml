@@ -1,7 +1,5 @@
 replicaCount: 1
 
-namespace: airlines
-
 image:
   repository: mongo
   tag: "4.4.6"
@@ -17,8 +15,8 @@ service:
   port: 27017
 
 persistence:
-  size: "1Gi"  
-  storageClass: "local-path"  
+  size: "1Gi"
+  storageClass: "local-path"
 
 resources:
   requests:

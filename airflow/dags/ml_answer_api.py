@@ -34,7 +34,7 @@ from flatten_json import flatten
 from dst_airlines.data.open_meteo_api_weather_hourly import fetch_weather_data
 from dst_airlines import utils
 
-utils.setup_logging()
+# utils.setup_logging()
 
 ## DONNEES TEST :
 # airport_code : PRG
