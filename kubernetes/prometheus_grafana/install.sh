@@ -1,8 +1,8 @@
 #! /bin/bash
 
 # Prometheus stack :
-# helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-# helm repo update
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
 helm install prometheus prometheus-community/prometheus -n airlines
 # helm uninstall prometheus
 
