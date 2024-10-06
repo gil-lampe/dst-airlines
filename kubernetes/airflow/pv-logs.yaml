@@ -1,8 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: airflow-pv-logs
-  namespace: airlines
+  name: airflow-pv-logs-{{ .Release.Namespace }}
   labels:
     type: local
 spec:
@@ -11,4 +10,4 @@ spec:
   accessModes:
   - ReadWriteOnce
   hostPath:
-    path: /mnt/data/airflow/logs
+    path: /mnt/data/airflow/logs/{{ .Release.Namespace }}
