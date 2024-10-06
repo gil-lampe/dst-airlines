@@ -4,7 +4,7 @@ from dst_airlines.data import airports
 from dst_airlines.database import mysql
 from dst_airlines import utils
 import logging
-import os
+from sqlalchemy import create_engine, text
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +27,22 @@ airport_file_path = "/app/raw_files/airport_names.csv"
 def taskflow():
     @task()
     def collect_structure_store_airports_in_mysql():
+        # Créez une connexion au serveur MySQL sans spécifier de base de données
+        engine = create_engine(f'mysql+pymysql://{sql_user}:{sql_password}@{sql_host}:{sql_port}')
+
+        # Ouvrez une session
+        with engine.connect() as connection:
+            # Vérifiez si la base de données existe déjà
+            result = connection.execute(text(f"SHOW DATABASES LIKE '{sql_database}';"))
+            exists = result.fetchone()
+
+            # Si la base de données n'existe pas, créez-la
+            if not exists:
+                connection.execute(text(f"CREATE DATABASE {sql_database};"))
+                logger.info(f"Database '{sql_database}' created successfully.")
+            else:
+                logger.info(f"Database '{sql_database}' already exists.")
+
         logger.info(f"Starting the collection and structuration of airport data from the {airport_file_path = }")
         airports_df = airports.generate_clean_airport_data(airport_file_path=airport_file_path)
 
