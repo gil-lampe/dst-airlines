@@ -7,7 +7,7 @@
 Predict airplane flight delays based on data collected from Lufthansa API among else
 
 ## Project Organization
-
+  
 ```
 ├── LICENSE            <- Open-source license if one is chosen
 ├── Makefile           <- Makefile with convenience commands like `make data` or `make train`
