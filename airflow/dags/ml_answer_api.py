@@ -45,7 +45,7 @@ def first_task(**kwargs):
     conf = kwargs.get('dag_run').conf
     input_airportcode = conf.get('arrival_iata_code')
     input_flightdate = conf.get('scheduled_departure_utc_time')
-    ti.xcom_push(key='flight_data', value=flights_df)
+    # ti.xcom_push(key='flight_data', value=flights_df)
     return [input_airportcode, input_flightdate]
 
 def get_coordinates(airport_code: str, airports_df: pd.DataFrame):
