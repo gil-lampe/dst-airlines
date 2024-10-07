@@ -276,7 +276,6 @@ def predict_delay(**kwargs):
     # df = df.drop(columns=new_cols_drop, axis=1)
     df = df[new_cols]
     logger.info(f"1 - {df.columns = } {df.info}")
-    df = df.drop_duplicates(subset=['Delay_minutes', 'temperature_2m'])
     # df = df.dropna(subset=['temperature_2m'])
 
     col_cat=df.select_dtypes(exclude='float')
