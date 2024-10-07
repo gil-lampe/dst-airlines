@@ -155,7 +155,7 @@ def predict_delay(**kwargs):
         'Arrival_ScheduledTimeLocal_DateTime',
         # 'Arrival_ScheduledTimeUTC_DateTime',
         'Arrival_ActualTimeLocal_DateTime',
-        # 'Arrival_ActualTimeUTC_DateTime',
+        'Arrival_ActualTimeUTC_DateTime',
         'Arrival_EstimatedTimeLocal_DateTime',
         'Arrival_EstimatedTimeUTC_DateTime',
         # 'Departure_EstimatedTimeLocal_DateTime', ##
@@ -188,22 +188,16 @@ def predict_delay(**kwargs):
     cols_to_drop = [col for col in col_flights if col in flights_df.columns]
     logger.info(f"{cols_to_drop = }")
     flights_df = flights_df.drop(cols_to_drop, axis=1)
-    logger.info(f"{flights_df = }")
-    for col in flights_df.columns:
-        logger.info(col)
-    flights_df = flights_df.dropna(subset=['Arrival_ActualTimeUTC_DateTime'], axis=1)
-    logger.info(f"{flights_df = }")
+
     ### ETL flights_df
     # Convertir en format datetime avec fuseau horaire (UTC si les données sont en UTC)
     flights_df['Arrival_ScheduledTimeUTC_DateTime'] = pd.to_datetime(flights_df['Arrival_ScheduledTimeUTC_DateTime'], utc=True)
-    flights_df['Arrival_ActualTimeUTC_DateTime'] = pd.to_datetime(flights_df['Arrival_ActualTimeUTC_DateTime'], utc=True)
     # Calculer le délai avant toute modification de format de date
 
     # flights_df['Delay_minutes'] = (flights_df['Arrival_ActualTimeUTC_DateTime'] - flights_df['Arrival_ScheduledTimeUTC_DateTime']).dt.total_seconds() / 60
     
     # Convertir ensuite les dates au format souhaité YYYY-mm-ddTHH-MM
     flights_df['Arrival_ScheduledTimeUTC_DateTime'] = flights_df['Arrival_ScheduledTimeUTC_DateTime'].dt.strftime('%Y-%m-%dT%H')#-%M')
-    flights_df['Arrival_ActualTimeUTC_DateTime'] = flights_df['Arrival_ActualTimeUTC_DateTime'].dt.strftime('%Y-%m-%dT%H')#-%M')
 
     ### ETL weather_df
     # Convertir en format datetime et appliquer le fuseau horaire UTC
