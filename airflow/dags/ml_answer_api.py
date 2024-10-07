@@ -139,6 +139,8 @@ def predict_delay(**kwargs):
     ti = kwargs['ti']
     weather_df = pd.DataFrame(ti.xcom_pull(key='weather_data'))
     flights_df = pd.DataFrame(ti.xcom_pull(key='flight_data'))
+    for col in flights_df.columns:
+        logger.info(col)
     logger.info(f"{flights_df = } {weather_df = }")
     ## traitement
     ## TARGET = ['Delay_minutes']
@@ -187,6 +189,8 @@ def predict_delay(**kwargs):
     logger.info(f"{cols_to_drop = }")
     flights_df = flights_df.drop(cols_to_drop, axis=1)
     logger.info(f"{flights_df = }")
+    for col in flights_df.columns:
+        logger.info(col)
     flights_df = flights_df.dropna(subset=['Arrival_ActualTimeUTC_DateTime'], axis=1)
     logger.info(f"{flights_df = }")
     ### ETL flights_df
