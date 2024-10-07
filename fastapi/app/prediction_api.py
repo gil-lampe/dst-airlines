@@ -18,6 +18,8 @@ logger = getLogger(__name__)
 # task_id = "load_task"
 # xcom_key = "final_result"
 
+airflow_hostname = "airflow-webserver"
+airflow_port = "8080"
 dag_id = "predict_delay"
 prediction_task_id = "predict_delay"
 prediction_xcom_key = "prediction"
@@ -228,10 +230,11 @@ async def post_predict_flight_delay(request: PredictionRequest, valid_credential
         raise HTTPException(status_code=401,
                             detail="Authentication failed - username does not exist or match with password.")
 
-    url = f"http://localhost:8080/api/v1/dags/{dag_id}/dagRuns"
+    url = f"http://{airflow_hostname}:{airflow_port}/api/v1/dags/{dag_id}/dagRuns"
     headers = {"Content-Type": "application/json", "Authorization": "Basic " + base64.b64encode(b"airflow:airflow").decode("utf-8")}
     data = {"dag_run_id": str(request.task_uuid), "conf": {"arrival_iata_code": request.arrival_iata_code, "scheduled_departure_utc_time": request.scheduled_departure_utc_time}}
-    
+    logger.info(f"Setup the url as {url = }.")
+
     try:
         async with aiohttp.ClientSession() as session:
             logger.info(f"Request to be sent to the {url = } with the following data : dag_run_id = {str(request.task_uuid)} | {request.arrival_iata_code = } | {request.scheduled_departure_utc_time = }.")
