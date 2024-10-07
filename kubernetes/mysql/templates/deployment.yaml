@@ -23,11 +23,14 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ .Release.Name }}-secret-{{ .Release.Namespace }}
-                  key: rootpassword
+                  key: rootPassword
             - name: MYSQL_DATABASE
               value: {{ .Values.mysql.database }}
             - name: MYSQL_USER
-              value: {{ .Values.mysql.user }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret-{{ .Release.Namespace }}
+                  key: user
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
