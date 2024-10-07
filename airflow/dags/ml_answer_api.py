@@ -216,70 +216,72 @@ def predict_delay(**kwargs):
                     right_on=['Airport_Code', 'Flight_DateTime'],
                     how="left")
     logger.info(f"0 - {df = }")
-    new_cols_drop = [
-            'Departure_ScheduledTimeUTC_DateTime',
-            'Departure_TimeStatus_Code',
-            'Arrival_AirportCode',
-            'Arrival_ScheduledTimeUTC_DateTime',
-            'Arrival_ActualTimeUTC_DateTime',
-            'Arrival_TimeStatus_Code',
-            # 'Delay_minutes',
-            'Flight_DateTime',
-            'Airport_Code',
-            'Latitude',
-            'Longitude',
-            # 'temperature_2m',
-            # 'relative_humidity_2m',
-            # 'dew_point_2m',
-            # 'apparent_temperature',
-            # 'precipitation_probability',
-            # 'precipitation',
-            # 'rain',
-            # 'showers',
-            # 'snowfall',
-            # 'snow_depth',
-            # 'weather_code',
-            # 'pressure_msl',
-            # 'surface_pressure',
-            # 'cloud_cover',
-            # 'cloud_cover_low',
-            # 'cloud_cover_mid',
-            # 'cloud_cover_high',
-            # 'visibility',
-            # 'evapotranspiration',
-            # 'et0_fao_evapotranspiration',
-            # 'vapour_pressure_deficit',
-            # 'wind_speed_10m',
-            # 'wind_speed_80m',
-            # 'wind_speed_120m',
-            # 'wind_speed_180m',
-            # 'wind_direction_10m',
-            # 'wind_direction_80m',
-            # 'wind_direction_120m',
-            # 'wind_direction_180m',
-            # 'wind_gusts_10m',
-            # 'temperature_80m',
-            # 'temperature_120m',
-            # 'temperature_180m',
-            # 'soil_temperature_0cm',
-            # 'soil_temperature_6cm',
-            # 'soil_temperature_18cm',
-            # 'soil_temperature_54cm',
-            # 'soil_moisture_0_to_1cm',
-            # 'soil_moisture_1_to_3cm',
-            # 'soil_moisture_3_to_9cm',
-            # 'soil_moisture_9_to_27cm',
-            # 'soil_moisture_27_to_81cm'
-        ]
-
-    new_cols_drop = [col for col in new_cols_drop if col in df.columns]
-    logger.info(f"1 - {df = }")
-    df = df.drop(columns=new_cols_drop, axis=1)
-    logger.info(f"2 - {df = }")
-    # df = df.dropna()
     
-    # Encodage des variables catégorielles
-    df = pd.get_dummies(df)
+    new_cols = [
+        # 'Departure_ScheduledTimeUTC_DateTime',
+        # 'Departure_TimeStatus_Code',
+        # 'Arrival_AirportCode',
+        # 'Arrival_ScheduledTimeUTC_DateTime',
+        # 'Arrival_ActualTimeUTC_DateTime',
+        # 'Arrival_TimeStatus_Code',
+        'Delay_minutes',
+        # 'Flight_DateTime',
+        # 'Airport_Code',
+        # 'Latitude',
+        # 'Longitude',
+        'temperature_2m',
+        'relative_humidity_2m',
+        'dew_point_2m',
+        'apparent_temperature',
+        'precipitation_probability',
+        'precipitation',
+        'rain',
+        'showers',
+        'snowfall',
+        'snow_depth',
+        'weather_code',
+        'pressure_msl',
+        'surface_pressure',
+        'cloud_cover',
+        'cloud_cover_low',
+        'cloud_cover_mid',
+        'cloud_cover_high',
+        'visibility',
+        'evapotranspiration',
+        'et0_fao_evapotranspiration',
+        'vapour_pressure_deficit',
+        'wind_speed_10m',
+        'wind_speed_80m',
+        'wind_speed_120m',
+        'wind_speed_180m',
+        'wind_direction_10m',
+        'wind_direction_80m',
+        'wind_direction_120m',
+        'wind_direction_180m',
+        'wind_gusts_10m',
+        'temperature_80m',
+        'temperature_120m',
+        'temperature_180m',
+        'soil_temperature_0cm',
+        'soil_temperature_6cm',
+        'soil_temperature_18cm',
+        'soil_temperature_54cm',
+        'soil_moisture_0_to_1cm',
+        'soil_moisture_1_to_3cm',
+        'soil_moisture_3_to_9cm',
+        'soil_moisture_9_to_27cm',
+        'soil_moisture_27_to_81cm'
+    ]
+
+    # df = df.drop(columns=new_cols_drop, axis=1)
+    df = df[new_cols]
+    logger.info(f"1 - {df.columns = } {df.info}")
+    df = df.drop_duplicates(subset=['Delay_minutes', 'temperature_2m'])
+    # df = df.dropna(subset=['temperature_2m'])
+
+    col_cat=df.select_dtypes(exclude='float')
+    logger.info(f'\n\n{col_cat = }')
+    # df = pd.get_dummies(df)
 
     model = load('/opt/airflow/best_model.pickle')
 
