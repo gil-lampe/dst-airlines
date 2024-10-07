@@ -182,10 +182,11 @@ def predict_delay(**kwargs):
     ]
     
     cols_to_drop = [col for col in col_flights if col in flights_df.columns]
-
+    logger.info(f"{cols_to_drop = }")
     flights_df = flights_df.drop(cols_to_drop, axis=1)
+    logger.info(f"{flights_df = }")
     flights_df = flights_df.dropna(subset=['Arrival_ActualTimeUTC_DateTime'])
-
+    logger.info(f"{flights_df = }")
     ### ETL flights_df
     # Convertir en format datetime avec fuseau horaire (UTC si les données sont en UTC)
     flights_df['Arrival_ScheduledTimeUTC_DateTime'] = pd.to_datetime(flights_df['Arrival_ScheduledTimeUTC_DateTime'], utc=True)
