@@ -88,6 +88,7 @@ def get_weather_data(airports_df: pd.DataFrame = None, **kwargs):
     # input_flightdate = '2024-09-29T06:00'
     latitude, longitude = get_coordinates(input_airportcode, airports_df) 
     weather_df = fetch_weather_data([input_airportcode], [latitude], [longitude], [input_flightdate])
+    ti.xcom_push(key='weather_data', value=weather_df)
     return weather_df
 
 def fetch_future_flight_data(**kwargs):
@@ -121,7 +122,7 @@ def fetch_future_flight_data(**kwargs):
         flights_df = pd.DataFrame([flatten(d) for d in flights_data])
         input_flightdate += 'Z'
         flights_df = flights_df[flights_df['Departure_ScheduledTimeUTC_DateTime'] == input_flightdate]
-        ti.xcom_push(key='weather_data', value=flights_df)
+        ti.xcom_push(key='flight_data', value=flights_df)
         return flights_df
     else:
         raise Exception(f"Error fetching flight data: {response.status_code} - {response.text}")
