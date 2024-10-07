@@ -22,7 +22,10 @@ spec:
             - containerPort: {{ .Values.service.port }}
           env:
             - name: MONGO_INITDB_ROOT_USERNAME
-              value: {{ .Values.mongodb.mongodbUsername }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret-{{ .Release.Namespace }}
+                  key: mongodbUsername
             - name: MONGO_INITDB_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:

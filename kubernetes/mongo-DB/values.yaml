@@ -6,8 +6,6 @@ image:
   pullPolicy: IfNotPresent
 
 mongodb:
-  mongodbUsername: admin
-  mongodbPassword: password123
   mongodbDatabase: DST_AIRLINES
 
 service:
