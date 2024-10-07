@@ -34,7 +34,7 @@ from flatten_json import flatten
 from dst_airlines.data.open_meteo_api_weather_hourly import fetch_weather_data
 from dst_airlines import utils
 
-# utils.setup_logging()
+logger = logging.getLogger(__name__)
 
 ## DONNEES TEST :
 # airport_code : PRG
@@ -87,7 +87,7 @@ def get_weather_data(airports_df: pd.DataFrame = None, **kwargs):
     # input_airportcode = 'AYT'
     # input_flightdate = '2024-09-29T06:00'
     latitude, longitude = get_coordinates(input_airportcode, airports_df) 
-    print('\n\n',input_airportcode, longitude, latitude, '\n\n')
+    logger.info('\n\n',input_airportcode, longitude, latitude, '\n\n')
     weather_df = fetch_weather_data([input_airportcode], [latitude], [longitude], [input_flightdate])
     ti.xcom_push(key='weather_data', value=weather_df)
     return weather_df
