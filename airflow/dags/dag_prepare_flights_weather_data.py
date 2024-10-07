@@ -33,6 +33,40 @@ sql_host = "mysql-db"
 sql_port = "3306"
 sql_database = "DST_AIRLINES"
 
+filtered_cols = [
+     "Departure_AirportCode", 
+    #  "Departure_ScheduledTimeLocal_DateTime", 
+     "Departure_ScheduledTimeUTC_DateTime", 
+    #  "Departure_ActualTimeLocal_DateTime", 
+    #  "Departure_ActualTimeUTC_DateTime", 
+    #  "Departure_TimeStatus_Code", 
+    #  "Departure_TimeStatus_Definition", 
+    #  "Departure_Terminal_Name", 
+    #  "Departure_Terminal_Gate", 
+     "Arrival_AirportCode", 
+    #  "Arrival_ScheduledTimeLocal_DateTime", 
+     "Arrival_ScheduledTimeUTC_DateTime", 
+    #  "Arrival_ActualTimeLocal_DateTime", 
+     "Arrival_ActualTimeUTC_DateTime", 
+    #  "Arrival_TimeStatus_Code", 
+    #  "Arrival_TimeStatus_Definition", 
+    #  "Arrival_Terminal_Name", 
+    #  "MarketingCarrier_AirlineID", 
+    #  "MarketingCarrier_FlightNumber", 
+    #  "OperatingCarrier_AirlineID", 
+    #  "OperatingCarrier_FlightNumber", 
+    #  "Equipment_AircraftCode", 
+    #  "Equipment_AircraftRegistration", 
+    #  "FlightStatus_Code", 
+    #  "FlightStatus_Definition", 
+    #  "ServiceType", 
+    #  "Arrival_Terminal_Gate", 
+    #  "Arrival_EstimatedTimeLocal_DateTime", 
+    #  "Arrival_EstimatedTimeUTC_DateTime", 
+    #  "Departure_EstimatedTimeLocal_DateTime", 
+    #  "Departure_EstimatedTimeUTC_DateTime"
+     ]
+
 
 def _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = "DST_AIRLINES", mongodb_host = "localhost", mongodb_port = 27017) -> Collection:
         mongo_client = MongoClient(
@@ -83,8 +117,10 @@ def taskflow():
 
         flatten_flights = utils.flatten_list_of_dict(structured_flights)
 
+        filtered_flights = flatten_flights[filtered_cols]
+
         table_name = "flights"
-        mysql.upload_data_in_mysql(data=flatten_flights, table=table_name, sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
+        mysql.upload_data_in_mysql(data=filtered_flights, table=table_name, sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
 
     @task()
     def collect_store_weather_in_mysql(prev_task=None):
@@ -110,8 +146,3 @@ def taskflow():
     task3 = collect_store_weather_in_mysql(task2)
 
 taskflow()
-
-
-
-
-

@@ -6,7 +6,8 @@ logger = getLogger(__name__)
 
 
 def generate_clean_airport_data(airport_file_path: str=None) -> pd.DataFrame:
-    """Generate clean airport data from the provided file path (if no file path is provided, the function will load the file from the standard location (in data/4_external))
+    """Generate clean airport data from the provided file path 
+    (if no file path is provided, the function will load the file from the standard location (in data/4_external))
 
     Args:
         airport_file_path (str, optional): Path to get the Airport data. Defaults to None.
