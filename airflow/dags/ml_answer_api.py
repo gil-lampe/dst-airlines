@@ -87,7 +87,7 @@ def get_weather_data(airports_df: pd.DataFrame = None, **kwargs):
     # input_airportcode = 'AYT'
     # input_flightdate = '2024-09-29T06:00'
     latitude, longitude = get_coordinates(input_airportcode, airports_df) 
-    logger.info('\n\n',input_airportcode, longitude, latitude, '\n\n')
+    logger.info(f"{longitude = } {latitude = } {input_airportcode = } {input_flightdate = }")
     weather_df = fetch_weather_data([input_airportcode], [latitude], [longitude], [input_flightdate])
     ti.xcom_push(key='weather_data', value=weather_df)
     return weather_df
