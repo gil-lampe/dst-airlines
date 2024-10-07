@@ -1,6 +1,6 @@
 namespace: airlines
 replicaCount: 1
-image: ducroc/fastapi-airlines:v1
+image: glampe/dst_airlines_fastapi:0.1.0
 service:
   name: fastapi-service
   port: 80
