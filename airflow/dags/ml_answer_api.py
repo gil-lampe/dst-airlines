@@ -135,8 +135,8 @@ def fetch_future_flight_data(**kwargs):
 
 def predict_delay(**kwargs):
     ti = kwargs['ti']
-    weather_df = ti.xcom_pull(key='weather_data') 
-    flights_df = ti.xcom_pull(key='flight_data')
+    weather_df = pd.DataFrame(ti.xcom_pull(key='weather_data'))
+    flights_df = pd.DataFrame(ti.xcom_pull(key='flight_data'))
     logger.info(f"{flights_df = } {weather_df = }")
     ## traitement
     ## TARGET = ['Delay_minutes']
