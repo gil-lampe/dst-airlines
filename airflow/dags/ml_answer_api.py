@@ -207,7 +207,7 @@ def predict_delay(**kwargs):
 
     flights_df = flights_df.rename(str, axis="columns")
     weather_df = weather_df.rename(str, axis="columns")
-    logger.info(f"XZ - {df = }")
+    logger.info(f"XZ {flights_df = } {weather_df = }")
     df = pd.merge(flights_df, weather_df,
                     left_on=['Arrival_AirportCode', 'Arrival_ScheduledTimeUTC_DateTime'],
                     right_on=['Airport_Code', 'Flight_DateTime'],
