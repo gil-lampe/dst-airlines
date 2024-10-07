@@ -102,7 +102,8 @@ def fetch_future_flight_data(**kwargs):
     # input_airportcode = 'AYT'
     # input_flightdate = '2024-09-29T06:00'
 
-    departure_time = datetime.strptime(input_flightdate, '%Y-%m-%dT%H:%MZ').strftime('%Y-%m-%d')
+    departure_time = datetime.strptime(input_flightdate, "%Y-%m-%dT%H:%MZ")
+    formatted_date = departure_time.strftime("%Y-%m-%d")
     client_id="wd4b8gk6uu2psa6ywp65s8m7b"
     client_secret="PjFqxXDe9R"
     access_token = utils.get_lh_api_token(client_id, client_secret)
@@ -110,7 +111,7 @@ def fetch_future_flight_data(**kwargs):
     ip = utils.get_public_ip_address()
     departure_airportcode = "FRA"
     arrival_airportcode = input_airportcode
-    url = f"https://api.lufthansa.com/v1/operations/flightstatus/route/{departure_airportcode}/{arrival_airportcode}/{departure_time}"
+    url = f"https://api.lufthansa.com/v1/operations/flightstatus/route/{departure_airportcode}/{arrival_airportcode}/{formatted_date}"
     headers = {
         'Authorization': f'Bearer {access_token}',
         'X-originating-IP': ip
