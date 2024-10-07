@@ -45,6 +45,7 @@ def first_task(**kwargs):
     conf = kwargs.get('dag_run').conf
     input_airportcode = conf.get('arrival_iata_code')
     input_flightdate = conf.get('scheduled_departure_utc_time')
+    ti.xcom_push(key='flight_data', value=flights_df)
     return [input_airportcode, input_flightdate]
 
 def get_coordinates(airport_code: str, airports_df: pd.DataFrame):
@@ -69,8 +70,8 @@ def get_coordinates(airport_code: str, airports_df: pd.DataFrame):
 
 def get_weather_data(airports_df: pd.DataFrame = None, **kwargs):
     ti = kwargs['ti']    
-    input_airportcode = ti.xcom_pull(key='input_airportcode')
-    input_flightdate = ti.xcom_pull(key='input_flightdate')
+    input_airportcode = ti.xcom_pull(task_ids='first_task')[0]
+    input_flightdate = ti.xcom_pull(task_ids='first_task')[1]
     
     if airports_df == None:
         sql_user = "root"
@@ -93,9 +94,9 @@ def get_weather_data(airports_df: pd.DataFrame = None, **kwargs):
     return weather_df
 
 def fetch_future_flight_data(**kwargs):
-    ti = kwargs['ti']
-    input_airportcode = ti.xcom_pull(key='input_airportcode')
-    input_flightdate = ti.xcom_pull(key='input_flightdate')
+    ti = kwargs['ti']    
+    input_airportcode = ti.xcom_pull(task_ids='first_task')[0]
+    input_flightdate = ti.xcom_pull(task_ids='first_task')[1]
     
     # input_airportcode = 'AYT'
     # input_flightdate = '2024-09-29T06:00'
