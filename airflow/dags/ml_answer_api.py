@@ -126,12 +126,14 @@ def fetch_future_flight_data(**kwargs):
         flights_data = response.json()
         flights_data = flights_data['FlightStatusResource']['Flights']['Flight']
         flights_df = pd.DataFrame([flatten(d) for d in flights_data])
-        input_flightdate += 'Z'
+        # input_flightdate += 'Z'
         flights_df = flights_df[flights_df['Departure_ScheduledTimeUTC_DateTime'] == input_flightdate]
         ti.xcom_push(key='flight_data', value=flights_df)
+        logger.info(f"{flights_df = }")
         return flights_df
     else:
         raise Exception(f"Error fetching flight data: {response.status_code} - {response.text}")
+
 
 def predict_delay(**kwargs):
     ti = kwargs['ti']
