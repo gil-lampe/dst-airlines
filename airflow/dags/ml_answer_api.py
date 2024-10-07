@@ -224,7 +224,7 @@ def predict_delay(**kwargs):
         # 'Arrival_ScheduledTimeUTC_DateTime',
         # 'Arrival_ActualTimeUTC_DateTime',
         # 'Arrival_TimeStatus_Code',
-        'Delay_minutes',
+        # 'Delay_minutes',
         # 'Flight_DateTime',
         # 'Airport_Code',
         # 'Latitude',
