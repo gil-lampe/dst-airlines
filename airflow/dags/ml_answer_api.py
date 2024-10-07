@@ -42,11 +42,12 @@ logger = logging.getLogger(__name__)
 
 def first_task(**kwargs):
     print("Extracting data...")
+    ti = kwargs['ti']
     conf = kwargs.get('dag_run').conf
     input_airportcode = conf.get('arrival_iata_code')
     input_flightdate = conf.get('scheduled_departure_utc_time')
-    # ti.xcom_push(key='flight_data', value=flights_df)
-    return [input_airportcode, input_flightdate]
+    ti.xcom_push(key='input_airport_code', value=input_airportcode)
+    ti.xcom_push(key='input_flightdate', value=input_flightdate)
 
 def get_coordinates(airport_code: str, airports_df: pd.DataFrame):
     ''' Get latitude, longitude from airports_df with flights_df AirportCode
@@ -69,9 +70,9 @@ def get_coordinates(airport_code: str, airports_df: pd.DataFrame):
 
 
 def get_weather_data(airports_df: pd.DataFrame = None, **kwargs):
-    ti = kwargs['ti']    
-    input_airportcode = ti.xcom_pull(task_ids='first_task')[0]
-    input_flightdate = ti.xcom_pull(task_ids='first_task')[1]
+    ti = kwargs['ti']
+    input_airportcode = ti.xcom_pull(key='input_airport_code', value=input_airportcode, task_ids='get_API_conf')
+    input_flightdate = ti.xcom_pull(key='input_flightdate', value=input_flightdate, task_ids='get_API_conf')   
     
     if airports_df == None:
         sql_user = "root"
