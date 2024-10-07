@@ -265,7 +265,7 @@ def predict_delay(flights_df, weather_df, **kwargs):
     # Encodage des variables catégorielles
     df = pd.get_dummies(df)
 
-    model = load('/home/sanou/DST-Airlines/airflow/clean_data/best_model.pickle')
+    model = load('/opt/airflow/best_model.pickle')
 
     prediction = model.predict(df)
     ti.xcom_push(key='prediction', value=prediction)
