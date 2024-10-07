@@ -207,11 +207,12 @@ def predict_delay(**kwargs):
 
     flights_df = flights_df.rename(str, axis="columns")
     weather_df = weather_df.rename(str, axis="columns")
+    logger.info(f"XZ - {df = }")
     df = pd.merge(flights_df, weather_df,
                     left_on=['Arrival_AirportCode', 'Arrival_ScheduledTimeUTC_DateTime'],
                     right_on=['Airport_Code', 'Flight_DateTime'],
                     how="left")
-    
+    logger.info(f"0 - {df = }")
     new_cols_drop = [
             'Departure_ScheduledTimeUTC_DateTime',
             'Departure_TimeStatus_Code',
@@ -269,8 +270,9 @@ def predict_delay(**kwargs):
         ]
 
     new_cols_drop = [col for col in new_cols_drop if col in df.columns]
-
+    logger.info(f"1 - {df = }")
     df = df.drop(columns=new_cols_drop, axis=1)
+    logger.info(f"2 - {df = }")
     # df = df.dropna()
     
     # Encodage des variables catégorielles
