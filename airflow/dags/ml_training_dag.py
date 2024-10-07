@@ -187,10 +187,10 @@ def compute_model_score(model, X, y):
         float: le score moyen (plus la valeur est proche de 0, meilleur est le modèle)
     """
     print(X.head())
-    X.to_csv(f'/app/clean_data/X{model}.csv', index=False)
+    X.to_csv(f'/opt/airflow/X{model}.csv', index=False)
     print("\n\n\n\n")
     print(y.head())
-    y.to_csv(f'/app/clean_data/y{model}.csv', index=False)
+    y.to_csv(f'/opt/airflow/y{model}.csv', index=False)
     cross_validation = cross_val_score(
         model,
         X,
@@ -236,7 +236,7 @@ def train_model(model_name, **kwargs):
         raise ValueError(f'Unknown model name: {model_name}')
     
     score = compute_model_score(model, X, y)
-    path_to_model = f'/app/clean_data/{model_name}_model.pickle'
+    path_to_model = f'/opt/airflow/{model_name}_model.pickle'
     train_and_save_model(model, X, y, path_to_model)
     kwargs['ti'].xcom_push(key=f'{model_name}', value=score)
 
@@ -257,21 +257,21 @@ def select_best_model(**kwargs):
         train_and_save_model(
             LinearRegression(),
             X, y,
-            '/app/clean_data/best_model.pickle'
+            '/opt/airflow/best_model.pickle'
         )
     if best_score == score_dtr:
         print(f'DecisionTreeRegressor selected with score : {score_lr}')
         train_and_save_model(
             DecisionTreeRegressor(),
             X, y,
-            '/app/clean_data/best_model.pickle'
+            '/opt/airflow/best_model.pickle'
         )
     else:
         print(f'RandomForestRegressor selected with score : {score_lr}')
         train_and_save_model(
             RandomForestRegressor(),
             X, y,
-            '/app/clean_data/best_model.pickle'
+            '/opt/airflow/best_model.pickle'
         )
 
 
