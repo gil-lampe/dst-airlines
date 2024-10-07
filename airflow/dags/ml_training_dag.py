@@ -26,7 +26,7 @@ def prepair_data_to_ml():
     """
     sql_user = "root"
     sql_password = "rootpassword123"
-    sql_host = "mysql"
+    sql_host = "mysql-db"
     sql_port = "3306"
     sql_database = "DST_AIRLINES"
 
