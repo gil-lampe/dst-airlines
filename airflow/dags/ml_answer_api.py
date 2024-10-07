@@ -95,9 +95,9 @@ def get_weather_data(airports_df: pd.DataFrame = None, **kwargs):
     return weather_df
 
 def fetch_future_flight_data(**kwargs):
-    ti = kwargs['ti']    
-    input_airportcode = ti.xcom_pull(task_ids='first_task')[0]
-    input_flightdate = ti.xcom_pull(task_ids='first_task')[1]
+    ti = kwargs['ti']
+    input_airportcode = ti.xcom_pull(key='input_airport_code', value=input_airportcode, task_ids='get_API_conf')
+    input_flightdate = ti.xcom_pull(key='input_flightdate', value=input_flightdate, task_ids='get_API_conf')   
     
     # input_airportcode = 'AYT'
     # input_flightdate = '2024-09-29T06:00'
