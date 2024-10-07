@@ -102,7 +102,7 @@ def fetch_future_flight_data(**kwargs):
     # input_airportcode = 'AYT'
     # input_flightdate = '2024-09-29T06:00'
 
-    departure_time = datetime.strptime(input_flightdate, '%Y-%m-%dT%H:%M').strftime('%Y-%m-%d')
+    departure_time = datetime.strptime(input_flightdate, '%Y-%m-%dT%H:%MZ').strftime('%Y-%m-%d')
     client_id="wd4b8gk6uu2psa6ywp65s8m7b"
     client_secret="PjFqxXDe9R"
     access_token = utils.get_lh_api_token(client_id, client_secret)
