@@ -140,8 +140,8 @@ def predict_delay(**kwargs):
  
     ## traitement
     ## TARGET = ['Delay_minutes']
-    
-    cols_to_drop = [
+
+    col_flights = [
         'Departure_ScheduledTimeLocal_DateTime',
         # 'Departure_ScheduledTimeUTC_DateTime',
         'Departure_ActualTimeLocal_DateTime',
@@ -180,6 +180,8 @@ def predict_delay(**kwargs):
         'Arrival_TimeStatus_Definition',
         'FlightStatus_Definition'
     ]
+    
+    cols_to_drop = [col for col in col_flights if col in flights_df.columns]
 
     flights_df = flights_df.drop(cols_to_drop, axis=1)
     flights_df = flights_df.dropna(subset=['Arrival_ActualTimeUTC_DateTime'])
@@ -209,6 +211,7 @@ def predict_delay(**kwargs):
                     left_on=['Arrival_AirportCode', 'Arrival_ScheduledTimeUTC_DateTime'],
                     right_on=['Airport_Code', 'Flight_DateTime'],
                     how="left")
+    
     new_cols_drop = [
             'Departure_ScheduledTimeUTC_DateTime',
             'Departure_TimeStatus_Code',
@@ -265,6 +268,7 @@ def predict_delay(**kwargs):
             # 'soil_moisture_27_to_81cm'
         ]
 
+    new_cols_drop = [col for col in new_cols_drop if col in df.columns]
 
     df = df.drop(columns=new_cols_drop, axis=1)
     # df = df.dropna()
