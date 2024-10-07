@@ -19,14 +19,6 @@ from airflow.models import Variable
 from airflow.utils.dates import days_ago
 from airflow.utils.task_group import TaskGroup
 
-directory = "/app/clean_data"
-
-if not os.path.exists(directory):
-    os.mkdir(directory)  
-    print(f"Dossier créé : {directory}")
-else:
-    print(f"Le dossier existe déjà : {directory}")
-
 def prepair_data_to_ml():
     """
     Prépare les données en effectuant un merge entre les vols et la météo,
