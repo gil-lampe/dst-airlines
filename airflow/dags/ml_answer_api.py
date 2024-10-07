@@ -284,9 +284,9 @@ def predict_delay(**kwargs):
 
     model = load('/opt/airflow/best_model.pickle')
 
-    prediction = model.predict(df)
+    prediction = model.predict(df)[0]
+
     ti.xcom_push(key='prediction', value=prediction)
-    return float(prediction[0])
 
 #######  DAG  #######
 with DAG(
