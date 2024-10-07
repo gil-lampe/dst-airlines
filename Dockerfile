@@ -12,6 +12,5 @@ COPY dst_airlines/ /src/dst_airlines/
 RUN mkdir -p app/raw_files/
 COPY data/4_external/airport_names.csv /app/raw_files/airport_names.csv
 
-
 RUN pip3 install --no-cache-dir /src
 USER airflow
