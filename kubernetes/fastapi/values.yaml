@@ -1,4 +1,4 @@
-namespace: airlines
+namespace: {{ .Release.Namespace }}
 replicaCount: 1
 image: glampe/dst_airlines_fastapi:0.1.2
 service:
