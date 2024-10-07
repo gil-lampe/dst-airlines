@@ -133,7 +133,7 @@ def fetch_future_flight_data(**kwargs):
     else:
         raise Exception(f"Error fetching flight data: {response.status_code} - {response.text}")
 
-def predict_delay(flights_df, weather_df, **kwargs):
+def predict_delay(**kwargs):
     ti = kwargs['ti']
     weather_df = ti.xcom_pull(key='weather_data') 
     flights_df = ti.xcom_pull(key='flight_data')
