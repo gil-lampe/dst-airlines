@@ -75,7 +75,7 @@ def get_weather_data(airports_df: pd.DataFrame = None, **kwargs):
     if airports_df == None:
         sql_user = "root"
         sql_password = "password"
-        sql_host = "mysql-db"
+        sql_host = "mysql"
         sql_port = "3306"
         sql_database = "DST_AIRLINES"
 
