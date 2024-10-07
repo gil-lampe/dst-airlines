@@ -197,7 +197,6 @@ def predict_delay(**kwargs):
 
     # flights_df['Delay_minutes'] = (flights_df['Arrival_ActualTimeUTC_DateTime'] - flights_df['Arrival_ScheduledTimeUTC_DateTime']).dt.total_seconds() / 60
     
-    
     # Convertir ensuite les dates au format souhaité YYYY-mm-ddTHH-MM
     flights_df['Arrival_ScheduledTimeUTC_DateTime'] = flights_df['Arrival_ScheduledTimeUTC_DateTime'].dt.strftime('%Y-%m-%dT%H')#-%M')
     flights_df['Arrival_ActualTimeUTC_DateTime'] = flights_df['Arrival_ActualTimeUTC_DateTime'].dt.strftime('%Y-%m-%dT%H')#-%M')
@@ -273,6 +272,7 @@ def predict_delay(**kwargs):
         'soil_moisture_27_to_81cm'
     ]
 
+    new_cols = [col for col in new_cols if col in df.columns]
     # df = df.drop(columns=new_cols_drop, axis=1)
     df = df[new_cols]
     logger.info(f"1 - {df.columns = } {df.info}")

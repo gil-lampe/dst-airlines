@@ -79,6 +79,8 @@ def prepair_data_to_ml():
         'FlightStatus_Definition'
     ]
 
+    cols_to_drop = [col for col in cols_to_drop if col in flights_df.columns]
+    logger.info(f"{cols_to_drop = }")
     flights_df = flights_df.drop(cols_to_drop, axis=1)
     flights_df = flights_df.dropna(subset=['Arrival_ActualTimeUTC_DateTime'])
 
@@ -161,7 +163,7 @@ def prepair_data_to_ml():
         'soil_moisture_9_to_27cm',
         'soil_moisture_27_to_81cm'
     ]
-
+    new_cols = [col for col in new_cols if col in df.columns]
     # df = df.drop(columns=new_cols_drop, axis=1)
     df = df[new_cols]
     logger.info(f"1 - {df.columns = } {df.info}")
