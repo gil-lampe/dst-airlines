@@ -84,8 +84,8 @@ def get_weather_data(airports_df: pd.DataFrame = None, **kwargs):
 
         airports_df = pd.read_sql_table(table_name="airports", con=engine)
     # airports_df = pd.read_csv("/home/sanou/DST-Airlines/data/4_external/airport_names.csv")
-    # input_airportcode = 'AYT'
-    # input_flightdate = '2024-09-29T06:00'
+    input_airportcode = 'PMI'
+    input_flightdate = '2024-10-03T02:45'
     latitude, longitude = get_coordinates(input_airportcode, airports_df) 
     logger.info(f"{longitude = } {latitude = } {input_airportcode = } {input_flightdate = }")
     weather_df = fetch_weather_data([input_airportcode], [latitude], [longitude], [input_flightdate])
