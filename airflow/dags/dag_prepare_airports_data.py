@@ -2,18 +2,18 @@ from airflow.utils.dates import days_ago
 from airflow.decorators import dag, task
 from dst_airlines.data import airports
 from dst_airlines.database import mysql
-from dst_airlines import utils
 import logging
 from sqlalchemy import create_engine, text
+import os
+
 
 logger = logging.getLogger(__name__)
 
-sql_user = "root"
-sql_password = "rootpassword123"
-sql_host = "mysql-db"
-sql_port = "3306"
-
-sql_database = "DST_AIRLINES"
+sql_user = os.getenv("MYSQL_USER")
+sql_password = os.getenv("MYSQL_ROOT_PASSWORD")
+sql_host = os.getenv("MYSQL_HOST")
+sql_port = int(os.getenv("MYSQL_PORT"))
+sql_database = os.getenv("MYSQL_DATABASE")
 
 airport_file_path = "/app/raw_files/airport_names.csv"
 

@@ -3,7 +3,6 @@ from airflow.decorators import dag, task
 import pandas as pd
 from dst_airlines.data import lufthansa_api_flights
 from dst_airlines.data import open_meteo_api_weather_hourly
-from dst_airlines.data import airports
 from dst_airlines.database import mongodb
 from dst_airlines.database import mysql
 from dst_airlines import utils
@@ -21,18 +20,18 @@ airport_iata = "FRA"
 client_id=os.getenv("CLIENT_ID")
 client_secret=os.getenv("CLIENT_SECRET")
 
-mongodb_host = "mongo-db"
-mongodb_port = 27017
-mongodb_username= "admin"
-mongodb_password= "password123"
-mongodb_db_name = "DST_AIRLINES"
-collection_name = "FlightStatusResource"
+mongodb_host = os.getenv("MONGODB_HOST")
+mongodb_port = int(os.getenv("MONGODB_PORT"))
+mongodb_username = os.getenv("MONGODB_USER")
+mongodb_password = os.getenv("MONGODB_ROOT_PASSWORD")
+mongodb_db_name = os.getenv("MONGODB_DATABASE")
+collection_name = os.getenv("MONGODB_COLLECTION")
 
-sql_user = "root"
-sql_password = "rootpassword123"
-sql_host = "mysql-db"
-sql_port = "3306"
-sql_database = "DST_AIRLINES"
+sql_user = os.getenv("MYSQL_USER")
+sql_password = os.getenv("MYSQL_ROOT_PASSWORD")
+sql_host = os.getenv("MYSQL_HOST")
+sql_port = int(os.getenv("MYSQL_PORT"))
+sql_database = os.getenv("MYSQL_DATABASE")
 
 filtered_cols = [
      "Departure_AirportCode", 

@@ -1,32 +1,14 @@
-import os
 import requests
 from datetime import datetime
 import pandas as pd
 from joblib import load  # Attention : utilise joblib pour charger un modèle pickled
-import openmeteo_requests
-import requests_cache
-from retry_requests import retry
-from typing import List
 import logging
-import time
-import re
-from typing import List, Dict
-from openmeteo_requests.Client import OpenMeteoRequestsError
-import pymysql
 import sqlalchemy
 from flatten_json import flatten
-import json
+import os
 
-from sklearn.impute import SimpleImputer
-from sklearn.model_selection import cross_val_score
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
-from joblib import dump
-from typing import Tuple
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.models import Variable
 from airflow.utils.dates import days_ago
 from airflow.utils.task_group import TaskGroup
 
@@ -35,6 +17,9 @@ from dst_airlines.data.open_meteo_api_weather_hourly import fetch_weather_data
 from dst_airlines import utils
 
 logger = logging.getLogger(__name__)
+
+client_id=os.getenv("CLIENT_ID")
+client_secret=os.getenv("CLIENT_SECRET")
 
 ## DONNEES TEST :
 # airport_code : PRG
@@ -106,8 +91,6 @@ def fetch_future_flight_data(**kwargs):
 
     departure_time = datetime.strptime(input_flightdate, "%Y-%m-%dT%H:%MZ")
     formatted_date = departure_time.strftime("%Y-%m-%d")
-    client_id="wd4b8gk6uu2psa6ywp65s8m7b"
-    client_secret="PjFqxXDe9R"
     access_token = utils.get_lh_api_token(client_id, client_secret)
 
     ip = utils.get_public_ip_address()

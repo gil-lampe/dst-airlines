@@ -1,13 +1,8 @@
-import requests
-import json
 import os
 import pandas as pd
-import pymysql
 import sqlalchemy
-from datetime import datetime
 import logging
 
-from sklearn.impute import SimpleImputer
 from sklearn.model_selection import cross_val_score
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
@@ -16,22 +11,22 @@ from joblib import dump
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from airflow.models import Variable
 from airflow.utils.dates import days_ago
 from airflow.utils.task_group import TaskGroup
 
 logger = logging.getLogger(__name__)
+
+sql_user = os.getenv("MYSQL_USER")
+sql_password = os.getenv("MYSQL_ROOT_PASSWORD")
+sql_host = os.getenv("MYSQL_HOST")
+sql_port = int(os.getenv("MYSQL_PORT"))
+sql_database = os.getenv("MYSQL_DATABASE")
 
 def prepair_data_to_ml():
     """
     Prépare les données en effectuant un merge entre les vols et la météo,
     puis nettoie et encode les variables catégorielles.
     """
-    sql_user = "root"
-    sql_password = "rootpassword123"
-    sql_host = "mysql-db"
-    sql_port = "3306"
-    sql_database = "DST_AIRLINES"
 
     connection_string = f"mysql+pymysql://{sql_user}:{sql_password}@{sql_host}:{sql_port}/{sql_database}"
     engine = sqlalchemy.create_engine(connection_string)
