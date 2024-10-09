@@ -25,8 +25,25 @@ airport_file_path = "/app/raw_files/airport_names.csv"
     catchup=False
 )
 def taskflow():
+    """
+    Defines a DAG for collecting, structuring, and storing airport data from a CSV file into a MySQL database.
+    The DAG consists of a single task to handle this operation.
+    """
     @task()
     def collect_structure_store_airports_in_mysql():
+        """
+        Collects airport data from a CSV file, cleans and structures it, then inserts it into a MySQL database.
+        If the MySQL database does not exist, it creates one.
+
+        Steps:
+            1. Connect to MySQL server.
+            2. Check if the specified database exists. If not, create the database.
+            3. Read and clean the airport data from the CSV file.
+            4. Insert the cleaned airport data into the MySQL table.
+
+        Returns:
+            None
+        """
         # Créez une connexion au serveur MySQL sans spécifier de base de données
         engine = create_engine(f'mysql+pymysql://{sql_user}:{sql_password}@{sql_host}:{sql_port}')
 

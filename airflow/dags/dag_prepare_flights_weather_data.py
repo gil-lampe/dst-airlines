@@ -69,21 +69,35 @@ filtered_cols = [
 
 
 def _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = "DST_AIRLINES", mongodb_host = "localhost", mongodb_port = 27017) -> Collection:
-        mongo_client = MongoClient(
-                host = mongodb_host,
-                port = mongodb_port,
-                username = mongodb_username,
-                password = mongodb_password
-            )
+    """
+    Connects to MongoDB and retrieves a specified collection. If the collection does not exist, it creates a new one.
 
-        flights_db = mongo_client[mongodb_db_name]
+    Args:
+        mongodb_username (str): The username for MongoDB authentication.
+        mongodb_password (str): The password for MongoDB authentication.
+        collection_name (str): The name of the MongoDB collection to retrieve or create. Default is 'FlightStatusResource'.
+        mongodb_db_name (str): The name of the MongoDB database. Default is 'DST_AIRLINES'.
+        mongodb_host (str): The host address of MongoDB. Default is 'localhost'.
+        mongodb_port (int): The port number of MongoDB. Default is 27017.
 
-        if collection_name in flights_db.list_collection_names():
-            flights_collection = flights_db[collection_name]
-        else:
-            flights_collection = flights_db.create_collection(collection_name)
-        
-        return flights_collection
+    Returns:
+        Collection: The MongoDB collection object.
+    """
+    mongo_client = MongoClient(
+            host = mongodb_host,
+            port = mongodb_port,
+            username = mongodb_username,
+            password = mongodb_password
+        )
+
+    flights_db = mongo_client[mongodb_db_name]
+
+    if collection_name in flights_db.list_collection_names():
+        flights_collection = flights_db[collection_name]
+    else:
+        flights_collection = flights_db.create_collection(collection_name)
+    
+    return flights_collection
 
 @dag(
     dag_id='dst_airlines_prepare_flights_weather_data',
@@ -93,9 +107,24 @@ def _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_
     catchup=False
 )
 def taskflow():
+    """
+    Defines a DAG for fetching flight data, structuring it, and fetching weather forecasts for flights.
+    The DAG consists of three tasks:
+        1. Collect and store raw flights data in MongoDB.
+        2. Structure and store flights data in MySQL.
+        3. Collect and store weather data for the flights in MySQL.
+    """
     @task()
     def collect_store_raw_flights_in_mongodb(prev_task=None):
+        """
+        Fetches flight data from the Lufthansa API and stores it in MongoDB.
 
+        Args:
+            prev_task: Previous task dependency (optional).
+
+        Returns:
+            None
+        """
         public_ip = utils.get_public_ip_address()
         api_token = utils.get_lh_api_token(client_id=client_id, client_secret=client_secret)
         print(api_token)
@@ -109,6 +138,15 @@ def taskflow():
 
     @task()
     def structure_store_flights_in_mysql(prev_task=None):
+        """
+        Retrieves raw flights data from MongoDB, structures it, and stores it in a MySQL database.
+
+        Args:
+            prev_task: Previous task dependency (optional).
+
+        Returns:
+            None
+        """
         flights_collection = _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = mongodb_db_name, mongodb_host = mongodb_host, mongodb_port = mongodb_port)
 
         raw_flights = flights_collection.find()
@@ -124,6 +162,15 @@ def taskflow():
 
     @task()
     def collect_store_weather_in_mysql(prev_task=None):
+        """
+        Retrieves flight data from MySQL, fetches corresponding weather data from Open Meteo API, and stores it in MySQL.
+
+        Args:
+            prev_task: Previous task dependency (optional).
+
+        Returns:
+            None
+        """
         connection_string = f"mysql+pymysql://{sql_user}:{sql_password}@{sql_host}:{sql_port}/{sql_database}"
         engine = sqlalchemy.create_engine(connection_string)
 
