@@ -26,6 +26,15 @@ client_secret=os.getenv("CLIENT_SECRET")
 # departure_UTC_time : 2024-09-24T20:15Z
 
 def first_task(**kwargs):
+    """
+    Extracts data from the DAG run configuration (airport code and flight date).
+
+    Args:
+        kwargs: Additional keyword arguments passed from the DAG run.
+
+    Returns:
+        None: Pushes extracted data to XCom for further tasks.
+    """
     print("Extracting data...")
     ti = kwargs['ti']
     conf = kwargs.get('dag_run').conf
@@ -35,16 +44,16 @@ def first_task(**kwargs):
     ti.xcom_push(key='input_flightdate', value=input_flightdate)
 
 def get_coordinates(airport_code: str, airports_df: pd.DataFrame):
-    ''' Get latitude, longitude from airports_df with flights_df AirportCode
-    
-    Args :
-    airport_code (str) : 3 letters to indicate which Airport is chosen
-    airports_df (df) : /home/sanou/DST-Airlines/data/4_external/airport_names.csv
-    
-    Returns :
-    latitude (float) : latitude of the Airport
-    longitude (float) : longitude of the Airport
-    '''
+    """
+    Retrieves the latitude and longitude of a specified airport from the DataFrame.
+
+    Args:
+        airport_code (str): The 3-letter IATA airport code.
+        airports_df (pd.DataFrame): DataFrame containing airport data.
+
+    Returns:
+        Tuple[float, float]: Latitude and longitude of the specified airport.
+    """
     airport = airports_df[airports_df['iata_code'] == airport_code]
     if not airport.empty:
         latitude = airport.iloc[0]['latitude_deg']
@@ -55,6 +64,16 @@ def get_coordinates(airport_code: str, airports_df: pd.DataFrame):
 
 
 def get_weather_data(airports_df: pd.DataFrame = None, **kwargs):
+    """
+    Fetches weather data for the given airport and flight date using the OpenMeteo API.
+
+    Args:
+        airports_df (pd.DataFrame): DataFrame containing airport information. If None, it fetches from the SQL database.
+        kwargs: Additional keyword arguments passed from the DAG run.
+
+    Returns:
+        pd.DataFrame: Weather data for the specified airport and flight date.
+    """
     ti = kwargs['ti']
     input_airportcode = ti.xcom_pull(key='input_airport_code')
     input_flightdate = ti.xcom_pull(key='input_flightdate')   
@@ -82,6 +101,15 @@ def get_weather_data(airports_df: pd.DataFrame = None, **kwargs):
     return weather_df
 
 def fetch_future_flight_data(**kwargs):
+    """
+    Fetches future flight data from the Lufthansa API for the specified airport and flight date.
+
+    Args:
+        kwargs: Additional keyword arguments passed from the DAG run.
+
+    Returns:
+        pd.DataFrame: Flight data for the specified route and date.
+    """
     ti = kwargs['ti']
     input_airportcode = ti.xcom_pull(key='input_airport_code')
     input_flightdate = ti.xcom_pull(key='input_flightdate')   
@@ -119,6 +147,15 @@ def fetch_future_flight_data(**kwargs):
 
 
 def predict_delay(**kwargs):
+    """
+    Predicts the flight delay based on flight data and weather data using a pre-trained model.
+
+    Args:
+        kwargs: Additional keyword arguments passed from the DAG run.
+
+    Returns:
+        float: The predicted flight delay in minutes.
+    """
     ti = kwargs['ti']
     weather_df = pd.DataFrame(ti.xcom_pull(key='weather_data'))
     flights_df = pd.DataFrame(ti.xcom_pull(key='flight_data'))

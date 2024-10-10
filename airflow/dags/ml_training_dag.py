@@ -22,10 +22,24 @@ sql_host = os.getenv("MYSQL_HOST")
 sql_port = int(os.getenv("MYSQL_PORT"))
 sql_database = os.getenv("MYSQL_DATABASE")
 
-def prepair_data_to_ml():
+def prepare_data_to_ml():
     """
-    Prépare les données en effectuant un merge entre les vols et la météo,
-    puis nettoie et encode les variables catégorielles.
+    Prepares the dataset for machine learning by merging flight and weather data,
+    cleaning unnecessary columns, handling missing values, and engineering features.
+
+    Steps Involved:
+        - Connects to the MySQL database and retrieves flight and weather data.
+        - Drops irrelevant columns from the flight data.
+        - Calculates the delay in minutes based on scheduled and actual arrival times.
+        - Formats datetime fields for merging.
+        - Merges flight data with corresponding weather data.
+        - Drops duplicate and rows with missing values.
+        - Separates features and target variable for modeling.
+
+    Returns:
+        Tuple[pd.DataFrame, pd.Series]: 
+            - Features DataFrame containing explanatory variables.
+            - Target Series containing the delay in minutes.
     """
 
     connection_string = f"mysql+pymysql://{sql_user}:{sql_password}@{sql_host}:{sql_port}/{sql_database}"
@@ -180,15 +194,15 @@ def prepair_data_to_ml():
 
 def compute_model_score(model, X, y):
     """
-    Calcule le score d'un modèle donné à l'aide de la validation croisée.
+    Computes the cross-validated score of a given machine learning model using negative mean squared error.
 
     Args:
-        model (sklean): le modèle de machine learning utilisé
-        X (pd.DataFrame): les variables explicatives
-        y (pd.DataFrame): la variable cible (target) à prédire
+        model (sklearn estimator): The machine learning model to evaluate.
+        X (pd.DataFrame): The feature matrix.
+        y (pd.Series): The target variable.
 
     Returns:
-        float: le score moyen (plus la valeur est proche de 0, meilleur est le modèle)
+        float: The average cross-validated score (negative MSE).
     """
     print(X.head())
     X.to_csv(f'/opt/airflow/X{model}.csv', index=False)
@@ -207,14 +221,13 @@ def compute_model_score(model, X, y):
 
 def train_and_save_model(model, X, y, path_to_model='./app/model.pckl'):
     """
-    Entraîne un modèle de machine learning sur les données fournies et sauvegarde le modèle entraîné.
-    
+    Trains a machine learning model on the provided data and saves the trained model to a file.
 
     Args:
-        model (sklearn): le modèle de machine learning utilisé
-        X (pd.DataFrame): les variables explicatives
-        y (pd.DataFrame): la variable cible (target) à prédire
-        path_to_model (str, optional): le chemin du fichier de sauvegarde. Defaults to './app/model.pckl'.
+        model (sklearn estimator): The machine learning model to train.
+        X (pd.DataFrame): The feature matrix.
+        y (pd.Series): The target variable.
+        path_to_model (str, optional): The file path to save the trained model. Defaults to './app/model.pckl'.
     """
     model.fit(X, y)
     print(str(model), 'saved at ', path_to_model)
@@ -222,11 +235,14 @@ def train_and_save_model(model, X, y, path_to_model='./app/model.pckl'):
 
 def train_model(model_name, **kwargs):
     """
-    Entraine un modèle de machine learning spécifié par son nom et sauvegarde le modèle dans un fichier.pickle.
+    Trains a specified machine learning model, evaluates its performance, and saves the trained model.
 
     Args:
-        model_name (str): le nom du modèle à entraîner cf énoncé.
-        **kwargs : arguments supplémentaires, notamment "ti", utilisé pour accéder à XCom.
+        model_name (str): The name of the model to train. Supported models are:
+            - 'LinearRegression'
+            - 'DecisionTreeRegressor'
+            - 'RandomForestRegressor'
+        **kwargs: Additional keyword arguments, including 'ti' for XCom interactions.
     """
     X, y = prepair_data_to_ml()
     
@@ -246,7 +262,11 @@ def train_model(model_name, **kwargs):
 
 def select_best_model(**kwargs):
     """
-    Sélectionne le meilleur modèle basé sur les scores calculés et sauvegarde le modèle.
+    Selects the best performing machine learning model based on cross-validated scores
+    and saves it as the best model.
+
+    Args:
+        **kwargs: Additional keyword arguments, including 'ti' for XCom interactions.
     """
     ti = kwargs['ti']
     score_lr = ti.xcom_pull(key='LinearRegression')
