@@ -39,11 +39,8 @@ responses = {
     401: {"description": "Authentication failed"},
 }
 
-
 logger = getLogger(__name__)
 basicConfig(level=INFO)
-
-
 
 fake_users_db = {
     "johndoe": {
@@ -72,19 +69,10 @@ fake_users_db = {
     }
 }
 
-
-# # TODO: stocker les utilisateurs dans une table MySQL
-# userdb = {"alice": "wonderland",
-#           "bob": "builder",
-#           "clementine": "mandarine"}
-
-# TODO: stocker les admin dans une table MySQL
-admindb = {"admin": "4dm1N"}
-
-
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 
 class Token(BaseModel):
     access_token: str
@@ -290,7 +278,7 @@ async def get_health_check() -> JSONResponse:
 
 
 @app.post("/token", tags=["identification"])
-async def login_for_access_token(
+async def post_login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
     user = _authenticate_user(fake_users_db, form_data.username, form_data.password)
@@ -318,7 +306,7 @@ async def get_token_check(current_user: Annotated[User, Depends(_get_current_act
     return JSONResponse(content={"status": f"Hi {current_user.username}, your token is valid"})
 
 
-@app.post("/predict_flight_delay/", tags=["application"], responses=responses)
+@app.post("/predict_flight_delay", tags=["application"], responses=responses)
 async def post_predict_flight_delay(request: PredictionRequest, current_user: Annotated[User, Depends(_get_current_active_user)]) -> JSONResponse:
     """Post a request to get a flight delay prediction (in minutes) based on the provided information 
 
