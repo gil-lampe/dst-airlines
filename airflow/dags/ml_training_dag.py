@@ -244,7 +244,7 @@ def train_model(model_name, **kwargs):
             - 'RandomForestRegressor'
         **kwargs: Additional keyword arguments, including 'ti' for XCom interactions.
     """
-    X, y = prepair_data_to_ml()
+    X, y = prepare_data_to_ml()
     
     if model_name == 'LinearRegression':
         model = LinearRegression()
@@ -273,7 +273,7 @@ def select_best_model(**kwargs):
     score_dtr = ti.xcom_pull(key='DecisionTreeRegressor')
     score_rfr = ti.xcom_pull(key='RandomForestRegressor')
     
-    X, y = prepair_data_to_ml()
+    X, y = prepare_data_to_ml()
     best_score = max(score_lr, score_dtr, score_rfr)
     
     if best_score == score_lr:
