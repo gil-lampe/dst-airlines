@@ -10,5 +10,5 @@ COPY ./app /code/app
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.prediction_api:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.prediction_api_oauth2:app", "--host", "0.0.0.0", "--port", "8000"]
 

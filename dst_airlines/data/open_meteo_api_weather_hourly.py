@@ -148,7 +148,7 @@ def prepare_flights_for_arrival_weather(df_flights: pd.DataFrame, df_airports: p
     return df_merged       
 
 
-def prepare_flights_for_departure_weather_from_arrival(df_flights: pd.DataFrame, df_airports: pd.DataFrame) -> pd.DataFrame:
+def prepare_flights_for_departure_weather(df_flights: pd.DataFrame, df_airports: pd.DataFrame) -> pd.DataFrame:
     """Prepare flights and airports data so that it can be consummed by the fetch_weather_data() function (will reformat Departure_ScheduledTimeUTC_DateTime values, merge both DataFrames and drop na on critical columns)
 
     Args:
@@ -169,10 +169,10 @@ def prepare_flights_for_departure_weather_from_arrival(df_flights: pd.DataFrame,
     # Jointure avec les données contenant les coordonnées des aéroports, suppression des vols vers des aéroports sans coordonnée
     df_flights_cleaned = df_flights_cleaned[["Departure_AirportCode", "Departure_ScheduledTimeUTC_DateTime"]]
     df_flights_cleaned = df_flights_cleaned.drop_duplicates()
-    df_flights = df_flights_cleaned.merge(right=df_airports_copy[["iata_code", "latitude_deg", "longitude_deg"]], left_on="Departure_AirportCode", right_on="iata_code", how="left")
-    df_flights = df_flights.dropna(axis=0, how="any", subset=["Departure_AirportCode", "latitude_deg", "longitude_deg", "Departure_ScheduledTimeUTC_DateTime"])
+    df_flights_merged = df_flights_cleaned.merge(right=df_airports_copy[["iata_code", "latitude_deg", "longitude_deg"]], left_on="Departure_AirportCode", right_on="iata_code", how="left")
+    df_flights_merged = df_flights_merged.dropna(axis=0, how="any", subset=["Departure_AirportCode", "latitude_deg", "longitude_deg", "Departure_ScheduledTimeUTC_DateTime"])
 
-    return df_flights 
+    return df_flights_merged 
 
 
 def download_weather_data_for_existing_flights() -> None:
@@ -243,7 +243,7 @@ def download_weather_data_for_existing_flights() -> None:
             df_weather_arr.to_csv(weather_path, index=False)
             logger.info(f"Arrival airport weather data stored at {weather_path = }.")
 
-            df_flights_coord_dep = prepare_flights_for_departure_weather_from_arrival(df_flights=df_merged, df_airports=df_airports)
+            df_flights_coord_dep = prepare_flights_for_departure_weather(df_flights=df_merged, df_airports=df_airports)
 
             # Collecte des données de météo pour les aéroports de départ
             logger.info(f"Generating departure airport weather data for the {file = } on the {date = }.")

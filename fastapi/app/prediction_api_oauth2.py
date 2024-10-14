@@ -1,34 +1,28 @@
 import aiohttp
 import base64
-from uuid import UUID
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+
 from logging import getLogger, basicConfig, INFO
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from asyncio import sleep
-from uuid import uuid4
+from uuid import uuid4, UUID
 from fastapi.middleware.cors import CORSMiddleware
 
+from datetime import datetime, timedelta, timezone
+from typing import Annotated
 
-from fastapi import Request, HTTPException, Body, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi import FastAPI
-import time
-from jose import jwt
+import jwt
+from jwt.exceptions import InvalidTokenError
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from passlib.context import CryptContext
+from pydantic import BaseModel, Field
 
+# to get a string like this run:
+# openssl rand -hex 32
+SECRET_KEY = "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-JWT_SECRET = "secret"
-JWT_ALGORITHM = "HS256"
-
-logger = getLogger(__name__)
-basicConfig(level=INFO)
-
-
-## Example
-# dag_id = "example_dag"
-# task_id = "load_task"
-# xcom_key = "final_result"
 
 airflow_username = "admin"
 airflow_password = "admin"
@@ -39,15 +33,76 @@ dag_id = "predict_delay"
 prediction_task_id = "predict_delay"
 prediction_xcom_key = "prediction"
 
+responses = {
+    200: {"description": "OK"},
+    400: {"description": "Bad request"},
+    401: {"description": "Authentication failed"},
+}
 
-# TODO: stocker les utilisateurs dans une table MySQL
-userdb = {"alice": "wonderland",
-          "bob": "builder",
-          "clementine": "mandarine"}
+logger = getLogger(__name__)
+basicConfig(level=INFO)
 
-# TODO: stocker les admin dans une table MySQL
-admindb = {"admin": "4dm1N"}
+fake_users_db = {
+    "johndoe": {
+        "username": "johndoe",
+        "role": "user",
+        "hashed_password": "$2b$12$SjNRrShqcITqCujOg58w7.oIsEqw5Sh.mILQcr2dA3k96syzPjucy", # password123
+        "disabled": False,
+    },
+    "janedoe": {
+        "username": "janedoe",
+        "role": "admin",
+        "hashed_password": "$2b$12$Uw334NP/JHnbSpq.KtujpeDLBv3WcdyPG2kfwJ0gUvEkoWibs89t6", # password456
+        "disabled": False,
+    },
+    "bob": {
+        "username": "bob",
+        "role": "admin",
+        "hashed_password": "$2b$12$31SyW.vA/9oI4MOkr5p4N.WSSP3/GofTKaH3dMkoP5S2JFYD2v5L.", # builder
+        "disabled": False,
+    },
+    "alice": {
+        "username": "alice",
+        "role": "admin",
+        "hashed_password": "$2b$12$Aaq9077v1JpzwJc3PD84vO.3KTGALximzCxYt6crC7w19izt/oRBG", # wonderland
+        "disabled": False,
+    }
+}
 
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(BaseModel):
+    username: str | None = None
+
+
+class User(BaseModel):
+    username: str
+    role: str
+    disabled: bool | None = None
+
+
+class UserInDB(User):
+    hashed_password: str
+
+
+class UserCreationRequest(BaseModel):
+    """Body to create a user.
+
+    Args:
+
+        username (str): username of the user
+        scheduled_arrival_time (str): password of the user
+    """
+    username: str
+    password: str
 
 
 class PredictionRequest(BaseModel):
@@ -64,86 +119,14 @@ class PredictionRequest(BaseModel):
     task_uuid: UUID = Field(default_factory=uuid4)
 
 
-class UserCreationRequest(BaseModel):
-    """Body to create a user.
-
-    Args:
-
-        username (str): username of the user
-        scheduled_arrival_time (str): password of the user
-    """
-    username: str
-    password: str
-
-
-def token_response(token: str):
-    return token
-
-
-def _sign_jwt(user_id: str):
-    payload = {"user_id": user_id, "expires": time.time() + 600}
-    token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-
-    return token_response(token)
-
-
-def decode_jwt(token: str):
-        
-    try:
-        decoded_token = jwt.decode(
-            token, JWT_SECRET, algorithms=[JWT_ALGORITHM]
-        )
-        return (
-            decoded_token if decoded_token["expires"] >= time.time() else None
-        )
-    except Exception:
-        return {}
-
-
-class JWTBearer(HTTPBearer):
-    def __init__(self, auto_error: bool = True):
-        super(JWTBearer, self).__init__(auto_error=auto_error)
-
-    async def __call__(self, request: Request):
-        credentials: HTTPAuthorizationCredentials = await super(
-            JWTBearer, self
-        ).__call__(request)
-        if credentials:
-            if not credentials.scheme == "Bearer":
-                raise HTTPException(
-                    status_code=403, detail="Invalid authentication scheme."
-                )
-            if not self.verify_jwt(credentials.credentials):
-                raise HTTPException(
-                    status_code=403, detail="Invalid token or expired token."
-                )
-            return credentials.credentials
-        else:
-            raise HTTPException(
-                status_code=403, detail="Invalid authorization code."
-            )
-
-    def verify_jwt(self, jwtoken: str):
-        isTokenValid: bool = False
-
-        try:
-            payload = decode_jwt(jwtoken)
-        except Exception:
-            payload = None
-        if payload:
-            isTokenValid = True
-        return isTokenValid
-
-
-
-
-
-
-
 app = FastAPI(openapi_tags=[
     {
         "name": "home",
         "description": "default functions"
+    },
+    {
+        "name": "identification",
+        "description": "functions to generate a token required to access the application"
     },
     {
         "name": "application",
@@ -165,63 +148,66 @@ app.add_middleware(
 )
 
 
-# TODO: Ajouter pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto") (cf. cours)
-security = HTTPBasic()
+def _verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
 
 
-responses = {
-    200: {"description": "OK"},
-    400: {"description": "Bad request"},
-    401: {"description": "Authentication failed"},
-}
+def _get_password_hash(password):
+    return pwd_context.hash(password)
 
 
-async def _verify_identity(username: str, password: str, db) -> bool:
-    """Function to verify the identity of a user based on the provided username and password.
-
-    Args:
-        username (str): Username to verify
-        password (str): Password to verify
-        db (_type_): Database where to find the username & password
-
-    Returns:
-        bool: True if the username exists and corresponds to the password, else False 
-    """
-    real_password = db.get(username)
-
-    logger.info(f"{real_password = } vs {password = }")
-
-    identity_verified = True if real_password == password else False
-    
-    return identity_verified
+def _get_user(db, username: str):
+    if username in db:
+        user_dict = db[username]
+        return UserInDB(**user_dict)
 
 
-async def _verify_identity_user(credentials: HTTPBasicCredentials = Depends(security)) -> bool:
-    """Extension of the _verify_identity for users
-
-    Args:
-
-        credentials (HTTPBasicCredentials, optional): provided credentials in the header. Defaults to Depends(security).
-
-    Returns:
-
-        bool: indicates if the identity is verified (True) or not (False)
-    """
-    return await _verify_identity(credentials.username, credentials.password, userdb)
+def _authenticate_user(fake_db, username: str, password: str):
+    user = _get_user(fake_db, username)
+    if not user:
+        return False
+    if not _verify_password(password, user.hashed_password):
+        return False
+    return user
 
 
-async def _verify_identity_admin(credentials: HTTPBasicCredentials = Depends(security)) -> bool:
-    """Extension of the _verify_identity for administrators
+def _create_access_token(data: dict, expires_delta: timedelta | None = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.now(timezone.utc) + expires_delta
+    else:
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
-    Args:
 
-        credentials (HTTPBasicCredentials, optional): provided credentials in the header. Defaults to Depends(security).
+async def _get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+    except InvalidTokenError:
+        raise credentials_exception
+    user = _get_user(fake_users_db, username=token_data.username)
+    if user is None:
+        raise credentials_exception
+    return user
 
-    Returns:
 
-        bool: indicates if the identity is verified (True) or not (False)
-    """
-    return await _verify_identity(credentials.username, credentials.password, admindb)
+async def _get_current_active_user(
+    current_user: Annotated[User, Depends(_get_current_user)],
+):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
 
 
 async def _handle_airflow_api_response(response: aiohttp.client.ClientResponse) -> dict:
@@ -257,41 +243,16 @@ async def _add_user(username: str, password: str) -> bool:
     """
     is_added = False
 
-    if username not in userdb:
-        userdb[username] = password
+    if username not in fake_users_db:
+        fake_users_db[username] = {
+            "username": username,
+            "role": "user",
+            "hashed_password": _get_password_hash(password),
+            "disabled": False, 
+        }
         is_added = True
     
     return is_added
-
-
-
-@app.post("/get_token", tags=["home"])
-async def post_get_token(valid_credentials: bool = Depends(_verify_identity_user), credentials: HTTPBasicCredentials = Depends(security)) -> str:
-    """
-    Description:
-    Cette route permet à un utilisateur de se connecter en fournissant les détails de connexion. Si les détails sont valides, elle renvoie un jeton JWT. Sinon, elle renvoie une erreur.
-
-    Args:
-    - user (UserCreationRequest, Body): Les détails de connexion de l'utilisateur.
-
-    Returns:
-    - str: Un jeton JWT si la connexion réussit.
-
-    Raises:
-    - HTTPException(401, detail="Unauthorized"): Si les détails de connexion sont incorrects, une exception HTTP 401 Unauthorized est levée.
-    """
-
-    logger.info(f"{valid_credentials = }")
-
-    if not valid_credentials:
-        logger.error("Error 401 - Authentication failed - username does not exist or match with password.")
-        raise HTTPException(status_code=401,
-                            detail="Authentication failed - username does not exist or match with password.")
-    else:
-        logger.info(f"{credentials.username = }")
-        return _sign_jwt(credentials.username)
-
-
 
 
 @app.get("/", tags=['home'])
@@ -315,27 +276,38 @@ async def get_health_check() -> JSONResponse:
     """
     return JSONResponse(content={"status": "ok - API is working"})
 
-@app.get("/secured", dependencies=[Depends(JWTBearer())], tags=["application"])
-async def read_root_secured():
-    """
-    Description:
-    Cette route renvoie un message "Hello World! but secured" uniquement si l'utilisateur est authentifié à l'aide du jeton JWT.
 
-    Args:
-    Aucun argument requis.
+@app.post("/token", tags=["identification"])
+async def post_login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+) -> Token:
+    user = _authenticate_user(fake_users_db, form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = _create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return Token(access_token=access_token, token_type="bearer")
+
+
+@app.get("/token/check", status_code=200, tags=['identification'])
+async def get_token_check(current_user: Annotated[User, Depends(_get_current_active_user)]) -> JSONResponse:
+    """Get a verification that your token is working.
 
     Returns:
-    - JSON: Renvoie un JSON contenant un message de salutation sécurisé si l'utilisateur est authentifié, sinon une réponse non autorisée.
 
-    Raises:
-    - HTTPException(401, detail="Unauthorized"): Si l'utilisateur n'est pas authentifié, une exception HTTP 401 Unauthorized est levée.
+        JSONResponse: Simple message to confirm everything is working as intended
     """
+    return JSONResponse(content={"status": f"Hi {current_user.username}, your token is valid"})
 
-    return {"message": "Hello World! but secured"}
 
-
-@app.post("/predict_flight_delay/", tags=["application"], responses=responses, dependencies=[Depends(JWTBearer())])
-async def post_predict_flight_delay(request: PredictionRequest) -> JSONResponse:
+@app.post("/predict_flight_delay", tags=["application"], responses=responses)
+async def post_predict_flight_delay(request: PredictionRequest, current_user: Annotated[User, Depends(_get_current_active_user)]) -> JSONResponse:
     """Post a request to get a flight delay prediction (in minutes) based on the provided information 
 
     Args:
@@ -402,14 +374,14 @@ async def post_predict_flight_delay(request: PredictionRequest) -> JSONResponse:
                 status_code = 400
                 prediction = ""                
                 message = "The prediction failed, please check that the provided data are correct."
-            return JSONResponse(status_code=status_code, content={"state": state, "prediction": f"{prediction}", "message": message})
+            return JSONResponse(status_code=status_code, content={"state": state, "prediction": f"{prediction}", "message": message, "requester": current_user})
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal Server Error - an unexpected error occurred. {e}")
 
 
 @app.post("/add_user/", tags=["administration"], responses=responses)
-async def post_add_user(request: UserCreationRequest, valid_credentials: bool = Depends(_verify_identity_admin)) -> JSONResponse:
+async def post_add_user(request: UserCreationRequest, current_user: Annotated[User, Depends(_get_current_active_user)]) -> JSONResponse:
     """Post a request to add a new user to the user database
 
     Args:
@@ -425,9 +397,9 @@ async def post_add_user(request: UserCreationRequest, valid_credentials: bool = 
 
         JSONResponse: Confirmation message in JSON format {"message": f"Success - username = {provided username} successfully addded."}
     """
-    if not valid_credentials:
+    if current_user.role != "admin":
         raise HTTPException(status_code=401,
-                            detail="Authentication failed - username does not exist or match with password")
+                            detail="Authentication failed - you do not have sufficient rights.")
     
     username = request.username
     password = request.password
@@ -438,5 +410,3 @@ async def post_add_user(request: UserCreationRequest, valid_credentials: bool = 
     else:
         raise HTTPException(status_code=400,
                             detail=f"Bad request - {username = } already exists in the database.")
-    
-
