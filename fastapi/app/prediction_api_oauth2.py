@@ -380,7 +380,7 @@ async def post_predict_flight_delay(request: PredictionRequest, current_user: An
         raise HTTPException(status_code=500, detail=f"Internal Server Error - an unexpected error occurred. {e}")
 
 
-@app.post("/add_user/", tags=["administration"], responses=responses)
+@app.post("/add_user", tags=["administration"], responses=responses)
 async def post_add_user(request: UserCreationRequest, current_user: Annotated[User, Depends(_get_current_active_user)]) -> JSONResponse:
     """Post a request to add a new user to the user database
 
