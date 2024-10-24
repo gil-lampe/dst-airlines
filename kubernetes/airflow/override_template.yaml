@@ -23,6 +23,11 @@ airflow:
   extraAnnotations:
     "prometheus.io/scrape": "true"
     "prometheus.io/port": "8090"
+    users:
+# Add a username / password for the user which will be used by FastAPI to query the API 
+    - username: 
+      password: 
+      role: "Op"
 
 extraSecrets:
 # Add your airflow-ssh-secret 

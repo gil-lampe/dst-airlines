@@ -18,14 +18,14 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from passlib.context import CryptContext
 from pydantic import BaseModel, Field
 
-# to generate a SECRET KEY, run the following command:
+# to generate a SECRET_KEY, run the following command:
 # openssl rand -hex 32
 SECRET_KEY = os.getenv("FASTAPI_JWT_SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-airflow_username = os.getenv("AIRFLOW_ADMIN_USERNAME")
-airflow_password = os.getenv("AIRFLOW_ADMIN_PASSWORD")
+airflow_username = os.getenv("AIRFLOW_APIUSER_USERNAME")
+airflow_password = os.getenv("AIRFLOW_APIUSER_PASSWORD")
 
 airflow_hostname = "airflow-webserver"
 airflow_port = "8080"

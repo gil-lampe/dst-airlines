@@ -24,13 +24,13 @@ spec:
             secretKeyRef:
               name: {{ .Release.Name }}-secret-{{ .Release.Namespace }}
               key: fastapiJwtSecretKey
-        - name: AIRFLOW_ADMIN_USERNAME
+        - name: AIRFLOW_APIUSER_USERNAME
           valueFrom:
             secretKeyRef:
               name: {{ .Release.Name }}-secret-{{ .Release.Namespace }}
-              key: airflowAdminUsername
-        - name: AIRFLOW_ADMIN_PASSWORD
+              key: airflowApiuserUsername
+        - name: AIRFLOW_APIUSER_PASSWORD
           valueFrom:
             secretKeyRef:
               name: {{ .Release.Name }}-secret-{{ .Release.Namespace }}
-              key: airflowAdminPassword
+              key: airflowApiuserPassword
