@@ -46,7 +46,7 @@ networks:
 
 # Pour accéder à nos DB :
 # MySQL
-# docker exec -it flights-db mysql -u sanou -p
+# docker exec -it flights-db mysql -u username -p
 # MongoDB
 # docker exec -it weather-db mongo
 # mongosh --host localhost --port 27018
@@ -57,5 +57,3 @@ networks:
 
 # Pour supprimer toute trace de nos compartiments Docker :
 # docker rm $(docker ps -a -q)
-
-# BIEN JOUE LES GARS

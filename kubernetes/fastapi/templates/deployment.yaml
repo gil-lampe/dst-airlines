@@ -18,4 +18,19 @@ spec:
         image: {{ .Values.image }}
         ports:
         - containerPort: 8000
----
+        env:
+        - name: FASTAPI_JWT_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secret-{{ .Release.Namespace }}
+              key: fastapiJwtSecretKey
+        - name: AIRFLOW_ADMIN_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secret-{{ .Release.Namespace }}
+              key: airflowAdminUsername
+        - name: AIRFLOW_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secret-{{ .Release.Namespace }}
+              key: airflowAdminPassword

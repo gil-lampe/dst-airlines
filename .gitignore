@@ -1,6 +1,14 @@
 # Data
 /data/
 /99_old_struct/data/
+/airflow/clean_data/
+/airflow/logs/
+
+# SQL related docs
+*.sqlite
+
+# Kubernetes / Helm secrets
+**/secret.yaml
 
 # Logs
 /logs/
