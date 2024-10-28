@@ -22,7 +22,7 @@ def main():
     table_name = "airports"
 
     logger.info(f"Starting the insertion of airports data into {table_name = }.")
-    mysql.upload_data_in_mysql(data=airports_df, table="airports", sql_user=USER_USERNAME, sql_password=USER_PASSWORD)
+    mysql.upload_data_in_mysql(data=airports_df, table_name="airports", sql_user=USER_USERNAME, sql_password=USER_PASSWORD)
 
     # Stockage des données de vol
     flights_folder_path = utils.build_data_storage_path(file_name="", data_stage="interim", folder="flights")    
@@ -36,7 +36,7 @@ def main():
 
         table_name = "flights"
         logger.info(f"Starting the insertion of {flights_path} into {table_name = }.")
-        mysql.upload_data_in_mysql(data=flights_df, table=table_name, sql_user=USER_USERNAME, sql_password=USER_PASSWORD)
+        mysql.upload_data_in_mysql(data=flights_df, table_name=table_name, sql_user=USER_USERNAME, sql_password=USER_PASSWORD)
 
     # Stockage des données de météo
     weather_forecasts_folder_path = utils.build_data_storage_path(file_name="", data_stage="interim", folder="weather_hourly")    
@@ -48,7 +48,7 @@ def main():
 
         table_name = "weather_forecasts"
         logger.info(f"Starting the insertion of {weather_forecasts_path} into {table_name = }.")
-        mysql.upload_data_in_mysql(data=weather_forecasts_df, table=table_name, sql_user=USER_USERNAME, sql_password=USER_PASSWORD)
+        mysql.upload_data_in_mysql(data=weather_forecasts_df, table_name=table_name, sql_user=USER_USERNAME, sql_password=USER_PASSWORD)
 
 if __name__ == "__main__":
     main()

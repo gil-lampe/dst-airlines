@@ -21,19 +21,16 @@ logger = logging.getLogger(__name__)
 client_id=os.getenv("CLIENT_ID")
 client_secret=os.getenv("CLIENT_SECRET")
 
-## DONNEES TEST :
-# airport_code : PRG
-# departure_UTC_time : 2024-09-24T20:15Z
 
 def first_task(**kwargs):
     """
-    Extracts data from the DAG run configuration (airport code and flight date).
+    Extract data from the DAG run configuration (airport code and flight date).
 
     Args:
         kwargs: Additional keyword arguments passed from the DAG run.
 
     Returns:
-        None: Pushes extracted data to XCom for further tasks.
+        None: Push extracted data to XCom for further tasks.
     """
     print("Extracting data...")
     ti = kwargs['ti']
@@ -42,6 +39,7 @@ def first_task(**kwargs):
     input_flightdate = conf.get('scheduled_departure_utc_time')
     ti.xcom_push(key='input_airport_code', value=input_airportcode)
     ti.xcom_push(key='input_flightdate', value=input_flightdate)
+
 
 def get_coordinates(airport_code: str, airports_df: pd.DataFrame):
     """
@@ -99,6 +97,7 @@ def get_weather_data(airports_df: pd.DataFrame = None, **kwargs):
     weather_df = fetch_weather_data([input_airportcode], [latitude], [longitude], [formatted_date])
     ti.xcom_push(key='weather_data', value=weather_df)
     return weather_df
+
 
 def fetch_future_flight_data(**kwargs):
     """

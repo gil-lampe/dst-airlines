@@ -24,7 +24,7 @@ sql_database = os.getenv("MYSQL_DATABASE")
 
 def prepare_data_to_ml():
     """
-    Prepares the dataset for machine learning by merging flight and weather data,
+    Prepare the dataset for machine learning by merging flight and weather data,
     cleaning unnecessary columns, handling missing values, and engineering features.
 
     Steps Involved:

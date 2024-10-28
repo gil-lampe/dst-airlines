@@ -1,7 +1,7 @@
 images:
   airflow:
     repository: "glampe/dst_airlines_custom_airflow"
-    tag: "0.1.1"
+    tag: "latest"
 
 dags:
   persistence:

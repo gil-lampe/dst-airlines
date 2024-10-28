@@ -26,13 +26,13 @@ airport_file_path = "/app/raw_files/airport_names.csv"
 )
 def taskflow():
     """
-    Defines a DAG for collecting, structuring, and storing airport data from a CSV file into a MySQL database.
+    Define a DAG for collecting, structuring, and storing airport data from a CSV file into a MySQL database.
     The DAG consists of a single task to handle this operation.
     """
     @task()
     def collect_structure_store_airports_in_mysql():
         """
-        Collects airport data from a CSV file, cleans and structures it, then inserts it into a MySQL database.
+        Collect airport data from a CSV file, clean and structure it, then insert it into a MySQL database.
         If the MySQL database does not exist, it creates one.
 
         Steps:
@@ -44,16 +44,16 @@ def taskflow():
         Returns:
             None
         """
-        # Créez une connexion au serveur MySQL sans spécifier de base de données
+        # Crée une connexion au serveur MySQL sans spécifier de base de données
         engine = create_engine(f'mysql+pymysql://{sql_user}:{sql_password}@{sql_host}:{sql_port}')
 
-        # Ouvrez une session
+        # Ouvre une session
         with engine.connect() as connection:
-            # Vérifiez si la base de données existe déjà
+            # Vérifie si la base de données existe déjà
             result = connection.execute(text(f"SHOW DATABASES LIKE '{sql_database}';"))
             exists = result.fetchone()
 
-            # Si la base de données n'existe pas, créez-la
+            # Si la base de données n'existe pas, la crée
             if not exists:
                 connection.execute(text(f"CREATE DATABASE {sql_database};"))
                 logger.info(f"Database '{sql_database}' created successfully.")
@@ -66,7 +66,7 @@ def taskflow():
         table_name = "airports"
 
         logger.info(f"Starting the insertion of airports data into the MySQL {table_name = }.")
-        mysql.upload_data_in_mysql(data=airports_df, sql_database=sql_database, table=table_name, sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port)
+        mysql.upload_data_in_mysql(data=airports_df, sql_database=sql_database, table_name=table_name, sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port)
         logger.info(f"Insertion of the airports data into {table_name = } finalized.")
 
     collect_structure_store_airports_in_mysql()

@@ -70,7 +70,7 @@ filtered_cols = [
 
 def _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = "DST_AIRLINES", mongodb_host = "localhost", mongodb_port = 27017) -> Collection:
     """
-    Connects to MongoDB and retrieves a specified collection. If the collection does not exist, it creates a new one.
+    Connect to MongoDB and retrieves a specified collection. If the collection does not exist, a new one is created.
 
     Args:
         mongodb_username (str): The username for MongoDB authentication.
@@ -108,7 +108,7 @@ def _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_
 )
 def taskflow():
     """
-    Defines a DAG for fetching flight data, structuring it, and fetching weather forecasts for flights.
+    Define a DAG for fetching flight data, structuring it, and fetching weather forecasts for flights.
     The DAG consists of three tasks:
         1. Collect and store raw flights data in MongoDB.
         2. Structure and store flights data in MySQL.
@@ -117,7 +117,7 @@ def taskflow():
     @task()
     def collect_store_raw_flights_in_mongodb(prev_task=None):
         """
-        Fetches flight data from the Lufthansa API and stores it in MongoDB.
+        Fetch flight data from the Lufthansa API and store it in MongoDB.
 
         Args:
             prev_task: Previous task dependency (optional).
@@ -139,7 +139,7 @@ def taskflow():
     @task()
     def structure_store_flights_in_mysql(prev_task=None):
         """
-        Retrieves raw flights data from MongoDB, structures it, and stores it in a MySQL database.
+        Retrieve raw flights data from MongoDB, structure it, and store it in a MySQL database.
 
         Args:
             prev_task: Previous task dependency (optional).
@@ -158,12 +158,12 @@ def taskflow():
         filtered_flights = flatten_flights[filtered_cols]
 
         table_name = "flights"
-        mysql.upload_data_in_mysql(data=filtered_flights, table=table_name, sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
+        mysql.upload_data_in_mysql(data=filtered_flights, table_name=table_name, sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
 
     @task()
     def collect_store_weather_in_mysql(prev_task=None):
         """
-        Retrieves flight data from MySQL, fetches corresponding weather data from Open Meteo API, and stores it in MySQL.
+        Retrieve flight data from MySQL, fetch corresponding weather data from Open Meteo API, and store it in MySQL.
 
         Args:
             prev_task: Previous task dependency (optional).
@@ -186,7 +186,7 @@ def taskflow():
         )
 
         table_name = "weather_forecasts"
-        mysql.upload_data_in_mysql(data=df_weather_arr, table=table_name, sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
+        mysql.upload_data_in_mysql(data=df_weather_arr, table_name=table_name, sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
 
     task1 = collect_store_raw_flights_in_mongodb()
     task2 = structure_store_flights_in_mysql(task1)
