@@ -27,23 +27,13 @@ echo " -- End : Install Airflow -- "
 # kubectl port-forward svc/airflow-webserver 8080:8080 --namespace airlines
 
 
-#Installation : 
+# Installation of GitSync: 
 
-# ssh-keygen -t rsa -b 4096 -C "remiducroc@gmail.com"
+## Generation of the key:
+# ssh-keygen -t rsa -b 4096 -C "GitSync for Airflow"
+
+## Encrypting of the private key in base64
 # base64 key.private -w 0 > temp.txt
+
+## Get the base64 key
 # cat temp.txt
-# cat key.pub
-
-
-
-
-
-# helm install airflow apache-airflow/airflow \
-# --namespace airlines \
-# --set airflow.image.repository=glampe/dst_airlines_custom_airflow \
-# --set airflow.image.tag=0.1.0 
-# --set webserver.defaultUser.username="$admin_env" \
-# --set webserver.defaultUser.password="$admin_env" \
-# --set postgresql.auth.postgresPassword="$pg_pw" \
-# --set postgresql.auth.username="$pg_user" \
-# --set postgresql.auth.password="$pg_pw"
