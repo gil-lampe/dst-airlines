@@ -77,7 +77,7 @@ def upload_data_in_mysql(data: pd.DataFrame | pd.Series, table_name: str, sql_us
         logger.info(f"{table_name = } is found in the {sql_database = }, appending new rows only into the table.")
 
         # Conversion en DataFrame si les données sont de type Series
-        data = pd.DataFrame(data) if isinstance(data, pd.Series) else data
+        data = data.to_frame() if isinstance(data, pd.Series) else data
         
         # Récupération des données existantes
         existing_data = pd.read_sql(f"SELECT * FROM {table_name}", con=engine)
