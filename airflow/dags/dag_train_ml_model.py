@@ -16,6 +16,41 @@ sql_port = int(os.getenv("MYSQL_PORT"))
 sql_database = os.getenv("MYSQL_DATABASE")
 
 
+
+
+
+###
+from sqlalchemy import create_engine
+import pandas as pd
+
+def get_tables(table_names: list[str], sql_user: str, sql_password: str, sql_host: str="localhost", sql_port: str="3306", sql_database: str="DST_AIRLINES") -> list[pd.DataFrame]:
+    """Get tables based on the provided table_names list from the MySQL database whose connection details are provided
+
+    Args:
+        table_names (list[str]): Name of the tables to retrive from the MySQL database
+        sql_user (str): Username to be used to connect to the MySQL database
+        sql_password (str): Password
+        sql_host (str, optional): MySQL host to use to connect. Defaults to "localhost".
+        sql_port (str, optional): MySQL port to use to connect. Defaults to "3306".
+        sql_database (str, optional): MySQL database name to which to connect. Defaults to "DST_AIRLINES".
+
+    Returns:
+        list[pd.DataFrame]: Collected dataframes from the MySQL database
+    """
+    logger.info(f"Initiating data download form the {table_names = }.")
+
+    connection_string = f"mysql+pymysql://{sql_user}:{sql_password}@{sql_host}:{sql_port}/{sql_database}"
+    engine = create_engine(connection_string)
+
+    dataframes = [pd.read_sql_table(table_name=table_name, con=engine) for table_name in table_names]
+
+    logger.info(f"Data download form the {table_names = } finalized.")
+    return dataframes
+
+###
+
+
+
 @dag(
     dag_id='dst_airlines_train_ml_model',
     # schedule_interval=timedelta(minutes=1),
@@ -38,7 +73,9 @@ def taskflow():
         """Prepare Lufthansa flight and Open Meteo weather forecast data to make them ready for ML model training.
         """
 
-        flights, weather_forecasts = mysql.get_tables(["flights", "weather_forecasts"], sql_user, sql_password, sql_host, sql_port, sql_database)
+        # flights, weather_forecasts = mysql.get_tables(["flights", "weather_forecasts"], sql_user, sql_password, sql_host, sql_port, sql_database)
+
+        flights, weather_forecasts = get_tables(["flights", "weather_forecasts"], sql_user, sql_password, sql_host, sql_port, sql_database)
 
         flights = prepare_data.prepare_flights_for_training(flights)
         flights = prepare_data.preprare_features_from_flights(flights)
