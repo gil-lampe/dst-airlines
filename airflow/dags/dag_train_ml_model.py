@@ -74,7 +74,6 @@ def taskflow():
         """
 
         # flights, weather_forecasts = mysql.get_tables(["flights", "weather_forecasts"], sql_user, sql_password, sql_host, sql_port, sql_database)
-
         flights, weather_forecasts = get_tables(["flights", "weather_forecasts"], sql_user, sql_password, sql_host, sql_port, sql_database)
 
         flights = prepare_data.prepare_flights_for_training(flights)
@@ -101,7 +100,8 @@ def taskflow():
             float: Score of the model
         """
 
-        features, target = mysql.get_tables(["features", "target"], sql_user, sql_password, sql_host, sql_port, sql_database)
+        # features, target = mysql.get_tables(["features", "target"], sql_user, sql_password, sql_host, sql_port, sql_database)
+        features, target = get_tables(["features", "target"], sql_user, sql_password, sql_host, sql_port, sql_database)
 
         model_score = train_model.compute_model_score(model_name, features, target)
 
@@ -158,7 +158,8 @@ def taskflow():
             model_name (str): Name of the model to be stored
         """
 
-        features, target = mysql.get_tables(["features", "target"], sql_user, sql_password, sql_host, sql_port, sql_database)
+        # features, target = mysql.get_tables(["features", "target"], sql_user, sql_password, sql_host, sql_port, sql_database)
+        features, target = get_tables(["features", "target"], sql_user, sql_password, sql_host, sql_port, sql_database)
 
         model_storage_path = '/opt/airflow/best_model.pickle'
 
