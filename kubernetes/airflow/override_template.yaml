@@ -9,7 +9,7 @@ dags:
     # existingClaim: "airflow-pvc-dags"
   gitSync:
     enabled: true
-    repo: "git@github.com:dts-bgm/DST-Airlines.git"
+    repo: "git@github.com:gil-lampe/dst-airlines.git"
     branch: "main"
     subPath: "./airflow/dags/"
     sshKeySecret: "airflow-ssh-secret"

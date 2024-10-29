@@ -130,7 +130,7 @@ def taskflow():
     # Workflow
     task1 = prepare_train_data()
     task2_scores = compute_model_scores(["LinearRegression", "DecisionTreeRegressor", "RandomForestRegressor"], prev_task=task1)
-    task3_best_model = select_best_model(score_lr=task2_scores["score_lr"], score_dtr=task2_scores["score_dtr"], score_rfr=task2_scores["score_rfr"])
+    task3_best_model = select_best_model(task2_scores)
     task4 = train_store_model(task3_best_model)
 
 taskflow()
