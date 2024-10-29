@@ -126,6 +126,8 @@ def taskflow():
             None
         """
         public_ip = utils.get_public_ip_address()
+        logger.info(f'Lufthansa {client_id = }')
+
         api_token = utils.get_lh_api_token(client_id=client_id, client_secret=client_secret)
         print(api_token)
         headers = utils.build_lh_api_headers(api_token, public_ip)
