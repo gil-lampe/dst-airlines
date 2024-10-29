@@ -78,10 +78,12 @@ def upload_data_in_mysql(data: pd.DataFrame | pd.Series, table_name: str, sql_us
 
         # Conversion en DataFrame si les données sont de type Series
         data = data.to_frame() if isinstance(data, pd.Series) else data
+        logger.info(f"{data.columns = }")
         
         # Récupération des données existantes
         existing_data = pd.read_sql(f"SELECT * FROM {table_name}", con=engine)
-        
+        logger.info(f"{existing_data.columns = }")
+
         # Sélection des nouvelles données à ajouter uniquement
         new_data = data.merge(existing_data, on=list(data.columns), how='left', indicator=True)
         new_data = new_data[new_data['_merge'] == 'left_only'].drop(columns=['_merge'])
