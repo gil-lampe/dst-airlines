@@ -1,3 +1,6 @@
+from airflow.utils.dates import days_ago
+from airflow.decorators import dag, task
+
 import pandas as pd
 from joblib import load  # Attention : utilise joblib pour charger un modèle pickled
 from logging import getLogger
@@ -7,9 +10,6 @@ from dst_airlines.data import lufthansa_api_flights, open_meteo_api_weather_hour
 from dst_airlines.database import mysql
 from dst_airlines import utils
 from dst_airlines.modeling import prepare_data, predict
-
-from airflow.utils.dates import days_ago
-from airflow.decorators import dag, task
 
 
 logger = getLogger(__name__)
@@ -100,3 +100,5 @@ def taskflow():
     task1_flights = get_flights()
     task2_weather_forecasts = get_weather_forecasts(task1_flights)
     task3 = predict_delay(task1_flights, task2_weather_forecasts)
+
+taskflow()
