@@ -144,11 +144,11 @@ def taskflow():
         logger.info(f"Shape of the dataset: {flights_weather_forecasts.shape = }")
 
         features = prepare_data.select_feature_columns(flights_weather_forecasts)
-        mysql.upload_data_in_mysql(data=features, table_name="features_1", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
+        mysql.upload_data_in_mysql(data=features, table_name="features", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
         logger.info(f"Shape of the dataset: {features.shape = }")
 
         target = prepare_data.compute_target_delay_in_minutes(flights_weather_forecasts)
-        mysql.upload_data_in_mysql(data=target, table_name="target_1", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
+        mysql.upload_data_in_mysql(data=target, table_name="target", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
         # upload_data_in_mysql(data=target, table_name="target", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
         logger.info(f"Shape of the dataset: {target.shape = }")
 
@@ -164,7 +164,7 @@ def taskflow():
             float: Score of the model
         """
 
-        features, target = mysql.get_tables(["features_1", "target_1"], sql_user, sql_password, sql_host, sql_port, sql_database)
+        features, target = mysql.get_tables(["features", "target"], sql_user, sql_password, sql_host, sql_port, sql_database)
         # features, target = get_tables(["features", "target"], sql_user, sql_password, sql_host, sql_port, sql_database)
         logger.info(f"Shape of the dataset: {features.shape = } vs. {target.shape = }")
 
@@ -215,7 +215,7 @@ def taskflow():
             model_name (str): Name of the model to be stored
         """
 
-        features, target = mysql.get_tables(["features_1", "target_1"], sql_user, sql_password, sql_host, sql_port, sql_database)
+        features, target = mysql.get_tables(["features", "target"], sql_user, sql_password, sql_host, sql_port, sql_database)
         # features, target = get_tables(["features", "target"], sql_user, sql_password, sql_host, sql_port, sql_database)
 
         model_storage_path = '/opt/airflow/best_model.pickle'
