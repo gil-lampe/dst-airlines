@@ -33,13 +33,23 @@ client_secret=os.getenv("CLIENT_SECRET")
 )
 def taskflow():
     """
-    Tasklfow to: 
-        1. xxx
+    Taskflow to: 
+        1. Retrieve flight information from the Lufthansa API based on user input.
+        2. Fetch weather forecasts for the flight's arrival airport.
+        3. Predict potential flight delays using the prepared data from flights and weather forecasts.
     """
-
     @task()
     def get_flights(**kwargs):
-            
+        """
+        Retrieve flight information from the Lufthansa API based on user input parameters.
+        
+        The function extracts the arrival airport IATA code and scheduled departure time 
+        from the DAG run's configuration. It then builds an API request to fetch current 
+        flight data and structures the received flight information into a DataFrame.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the structured flight information.
+        """
         conf = kwargs.get('dag_run').conf
         arrival_airport_iata = conf.get('arrival_iata_code')
         departure_datetime_local = conf.get('scheduled_departure_local_time')
@@ -73,7 +83,19 @@ def taskflow():
 
     @task()
     def get_weather_forecasts(flight_df: pd.DataFrame):
+        """
+        Fetch weather forecasts for the flight's arrival airport.
+        
+        The function extracts the arrival airport IATA code and the scheduled arrival time 
+        from the provided flight DataFrame. It retrieves the airport's geographical coordinates 
+        from the database and then requests hourly weather data using the Open Meteo API.
 
+        Args:
+            flight_df (pd.DataFrame): DataFrame containing flight information.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the weather forecast data for the arrival airport.
+        """
         arrival_airport_iata = flight_df.loc[0, "Arrival_AirportCode"]
         departure_datetime_utc = flight_df.loc[0, "Arrival_ScheduledTimeUTC_DateTime"].replace("Z", "")
 
@@ -88,7 +110,18 @@ def taskflow():
 
     @task()
     def predict_delay(flight_df: pd.DataFrame, weather_forecast_df: pd.DataFrame, **kwargs):
+        """
+        Predict potential flight delays using the prepared flight and weather data.
         
+        This function prepares the features from the flight DataFrame and merges them 
+        with the weather forecasts. It loads a pre-trained machine learning model and 
+        generates a delay prediction based on the prepared features. The predicted 
+        delay is then pushed to XCom for further use.
+
+        Args:
+            flight_df (pd.DataFrame): DataFrame containing structured flight information.
+            weather_forecast_df (pd.DataFrame): DataFrame containing weather forecast data.
+        """       
         flights = prepare_data.preprare_features_from_flights(flight_df)
 
         flights_weather_forecasts = prepare_data.merge_flights_and_weather(flights, weather_forecast_df)

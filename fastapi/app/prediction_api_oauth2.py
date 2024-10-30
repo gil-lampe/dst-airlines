@@ -375,7 +375,7 @@ async def post_predict_flight_delay(request: PredictionRequest, current_user: An
                 status_code = 400
                 prediction = ""                
                 message = "The prediction failed, please check that the provided data are correct."
-            return JSONResponse(status_code=status_code, content={"state": state, "prediction": f"{prediction}", "message": message, "requester": current_user})
+            return JSONResponse(status_code=status_code, content={"state": state, "prediction": f"{prediction}", "message": message, "requester": current_user.username})
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal Server Error - an unexpected error occurred. {e}")
