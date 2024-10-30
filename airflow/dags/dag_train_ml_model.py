@@ -138,7 +138,9 @@ def taskflow():
 
         flights = prepare_data.prepare_flights_for_training(flights)
         flights = prepare_data.preprare_features_from_flights(flights)
+
         logger.info(f"Shape of the dataset: {flights.shape = }")
+        logger.info(f"Shape of the dataset: {weather_forecasts.shape = }")
 
         flights_weather_forecasts = prepare_data.merge_flights_and_weather(flights, weather_forecasts)
         logger.info(f"Shape of the dataset: {flights_weather_forecasts.shape = }")
