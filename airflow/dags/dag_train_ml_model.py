@@ -166,6 +166,7 @@ def taskflow():
 
         features, target = mysql.get_tables(["features_1", "target_1"], sql_user, sql_password, sql_host, sql_port, sql_database)
         # features, target = get_tables(["features", "target"], sql_user, sql_password, sql_host, sql_port, sql_database)
+        logger.info(f"Shape of the dataset: {features.shape = } vs. {target.shape = }")
 
         model_score = train_model.compute_model_score(model_name, features, target)
 
