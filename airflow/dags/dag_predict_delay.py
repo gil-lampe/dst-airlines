@@ -54,13 +54,17 @@ def taskflow():
 
         url = lufthansa_api_flights.build_flight_url(departure_date_local=departure_date_local, departure_airport_iata = "FRA", arrival_airport_iata=arrival_airport_iata)
 
-        flights = lufthansa_api_flights.fetch_flights(url=url, headers=headers)
+        flights = lufthansa_api_flights.fetch_flights(url, headers)
+
+        logger.info(f"{flights}")
 
         flights_structured = lufthansa_api_flights.structure_flights(flights, "flightstatus")
 
+        logger.info(f"{flights_structured}")
+
         flight = lufthansa_api_flights.get_flight_via_departing_time(flights_structured, departure_datetime_local)
 
-        logger.info(f"{flight = }")
+        logger.info(f"{flight}")
 
         flight_df = pd.DataFrame([utils.flatten(flight)])
 
