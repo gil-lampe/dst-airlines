@@ -208,7 +208,7 @@ def fetch_departing_flights_till_midnight(airport_iata: str, headers: dict, api_
     outranged = False
 
     while outranged is False:
-        api_answer = fetch_flights(api_name, url, headers)
+        api_answer = fetch_flights(url=url, headers=headers, api_name=api_name)
 
         if api_answer["code"] == 200:
             flights_data_dic["data"] += api_answer["data"]
