@@ -31,7 +31,6 @@ def upload_data_in_mysql(data: pd.DataFrame | pd.Series, table_name: str, sql_us
         data (pd.DataFrame | pd.Series): Data to be inserted into the MySQL table
         table (str): Name of the MySQL table
         sql_user (str): Username to be used to connect to the MySQL database
-    
         sql_password (str): Password
         insert_existing_row (bool, optional): Insert rows which already exist in the database (True / False). Defaults to "False" - i.e., already existing rows are not inserted.
         if_exists (str, optional): Method to use if the table already exists, see `DataFrame.to_sql()` for more details. Defaults to "append".
@@ -64,9 +63,10 @@ def upload_data_in_mysql(data: pd.DataFrame | pd.Series, table_name: str, sql_us
             # Récupération des données existantes
             existing_data = pd.read_sql(f"SELECT * FROM {table_name}", con=engine)
             logger.info(f"Shape of existing data within the database: {existing_data.shape}")
+            logger.info(f"{existing_data.columns.to_list()} vs. {new_data.columns.to_list()}")
 
             # Sélection des nouvelles données à ajouter uniquement
-            new_data = new_data.merge(existing_data, on=list(new_data.columns), how='left', indicator=True)
+            new_data = new_data.merge(existing_data, on=new_data.columns.to_list(), how='left', indicator=True)
             logger.info(f"Shape of the new data after merging: {new_data.shape}")
             new_data = new_data[new_data['_merge'] == 'left_only'].drop(columns=['_merge'])
             logger.info(f"Shape of the new data after merging and selecting only non existing rows: {new_data.shape}")
@@ -77,6 +77,9 @@ def upload_data_in_mysql(data: pd.DataFrame | pd.Series, table_name: str, sql_us
     
     new_data_row_number = new_data.shape[0]
     number_rows_appended = new_data.to_sql(name=table_name, con=engine, if_exists=if_exists, index=False)
+
+    final_data = pd.read_sql(f"SELECT * FROM {table_name}", con=engine)
+    logger.info(f"Shape of table after insertion: {final_data.shape}")
 
     logger.info(f"New rows inserted in the {table_name = }, ({number_rows_appended = } vs. {new_data_row_number = }).")
 # ###
