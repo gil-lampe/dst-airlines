@@ -60,6 +60,8 @@ def taskflow():
 
         flight = lufthansa_api_flights.get_flight_via_departing_time(flights_structured, departure_datetime_local)
 
+        logger.info(f"{flight = }")
+
         flight_df = pd.DataFrame([utils.flatten(flight)])
 
         return flight_df
