@@ -71,8 +71,8 @@ def upload_data_in_mysql(data: pd.DataFrame | pd.Series, table_name: str, sql_us
             new_data = new_data[new_data['_merge'] == 'left_only'].drop(columns=['_merge'])
             logger.info(f"Shape of the new data after merging and selecting only non existing rows: {new_data.shape}")
             
-    elif if_exists != "append":
-        logger.info(f"Application of the option {if_exists} if the table exists.")    
+    elif (table_name in table_names) and if_exists != "append":
+        logger.info(f"{table_name = } is found in the {sql_database = }, application of the option '{if_exists}'.")    
     else:
         logger.info(f"{table_name = } not found in the {sql_database = }, creating the table {table_name = } and inserting data into it.")
     
@@ -126,13 +126,13 @@ def taskflow():
 
         features = prepare_data.select_feature_columns(flights_weather_forecasts)
         # mysql.upload_data_in_mysql(data=features, table_name="features", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
-        upload_data_in_mysql(data=features, table_name="features", if_exists="replace", insert_existing_rows=True, sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
+        upload_data_in_mysql(data=features, table_name="features", if_exists="replace", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
         
         logger.info(f"Shape of the dataset: {features.shape = }")
 
         target = prepare_data.compute_target_delay_in_minutes(flights_weather_forecasts)
         # mysql.upload_data_in_mysql(data=target, table_name="target", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
-        upload_data_in_mysql(data=target, table_name="target", if_exists="replace", insert_existing_rows=True, sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
+        upload_data_in_mysql(data=target, table_name="target", if_exists="replace", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
         logger.info(f"Shape of the dataset: {target.shape = }")
 
     @task()

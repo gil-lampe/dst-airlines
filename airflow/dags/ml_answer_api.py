@@ -305,7 +305,7 @@ def predict_delay(**kwargs):
 
 #######  DAG  #######
 with DAG(
-    dag_id='predict_delay',
+    dag_id='predict_delay_old',
     schedule_interval=None, 
     default_args={
         'owner': 'airflow',

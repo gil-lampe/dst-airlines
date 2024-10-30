@@ -25,7 +25,7 @@ client_secret=os.getenv("CLIENT_SECRET")
 
 
 @dag(
-    dag_id='dst_airlines_predict_delay',
+    dag_id= "predict_delay", #'dst_airlines_predict_delay',
     # schedule_interval=timedelta(minutes=1),
     tags=['DST-airlines', 'prediction'],
     start_date=days_ago(0),
