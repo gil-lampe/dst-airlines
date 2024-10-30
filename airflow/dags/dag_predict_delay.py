@@ -96,7 +96,7 @@ def taskflow():
 
         model = load('/opt/airflow/best_model.pickle')
 
-        prediction = predict.generate_prediction(model, features)[0]
+        prediction = predict.generate_prediction(model, features)
 
         logger.info(f'Delay predicted by the model: {prediction = }min.')
         
