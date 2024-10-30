@@ -142,6 +142,12 @@ def taskflow():
         logger.info(f"Shape of the dataset: {flights.shape = }")
         logger.info(f"Shape of the dataset: {weather_forecasts.shape = }")
 
+        duplicates = weather_forecasts.duplicated(subset=['Airport_Code', 'Flight_DateTime'], keep=False)
+        logger.info(f"Number of duplicates with subset: {weather_forecasts[duplicates].shape = }")
+
+        duplicates = weather_forecasts.duplicated(keep=False)
+        logger.info(f"Number of duplicates without subset: {weather_forecasts[duplicates].shape = }")
+
         flights_weather_forecasts = prepare_data.merge_flights_and_weather(flights, weather_forecasts)
         logger.info(f"Shape of the dataset: {flights_weather_forecasts.shape = }")
 
