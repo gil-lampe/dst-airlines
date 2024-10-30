@@ -68,38 +68,39 @@ filtered_cols = [
      ]
 
 
-def _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = "DST_AIRLINES", mongodb_host = "localhost", mongodb_port = 27017) -> Collection:
-    """
-    Connect to MongoDB and retrieves a specified collection. If the collection does not exist, a new one is created.
+# def _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = "DST_AIRLINES", mongodb_host = "localhost", mongodb_port = 27017) -> Collection:
+#     """
+#     Connect to MongoDB and retrieves a specified collection. If the collection does not exist, a new one is created.
 
-    Args:
-        mongodb_username (str): The username for MongoDB authentication.
-        mongodb_password (str): The password for MongoDB authentication.
-        collection_name (str): The name of the MongoDB collection to retrieve or create. Default is 'FlightStatusResource'.
-        mongodb_db_name (str): The name of the MongoDB database. Default is 'DST_AIRLINES'.
-        mongodb_host (str): The host address of MongoDB. Default is 'localhost'.
-        mongodb_port (int): The port number of MongoDB. Default is 27017.
+#     Args:
+#         mongodb_username (str): The username for MongoDB authentication.
+#         mongodb_password (str): The password for MongoDB authentication.
+#         collection_name (str): The name of the MongoDB collection to retrieve or create. Default is 'FlightStatusResource'.
+#         mongodb_db_name (str): The name of the MongoDB database. Default is 'DST_AIRLINES'.
+#         mongodb_host (str): The host address of MongoDB. Default is 'localhost'.
+#         mongodb_port (int): The port number of MongoDB. Default is 27017.
 
-    Returns:
-        Collection: The MongoDB collection object.
-    """
-    logger.info(f"Starting the retrieving of the MongoDB collection at: {mongodb_db_name = } | {collection_name = }.")
-    mongo_client = MongoClient(
-            host = mongodb_host,
-            port = mongodb_port,
-            username = mongodb_username,
-            password = mongodb_password
-        )
+#     Returns:
+#         Collection: The MongoDB collection object.
+#     """
+#     logger.info(f"Starting the retrieving of the MongoDB collection at: {mongodb_db_name = } | {collection_name = }.")
+#     mongo_client = MongoClient(
+#             host = mongodb_host,
+#             port = mongodb_port,
+#             username = mongodb_username,
+#             password = mongodb_password
+#         )
 
-    flights_db = mongo_client[mongodb_db_name]
+#     flights_db = mongo_client[mongodb_db_name]
 
-    if collection_name in flights_db.list_collection_names():
-        flights_collection = flights_db[collection_name]
-    else:
-        flights_collection = flights_db.create_collection(collection_name)
+#     if collection_name in flights_db.list_collection_names():
+#         flights_collection = flights_db[collection_name]
+#     else:
+#         flights_collection = flights_db.create_collection(collection_name)
     
-    logger.info(f"Retrieving of the MongoDB collection finalized.")
-    return flights_collection
+#     logger.info(f"Retrieving of the MongoDB collection finalized.")
+#     return flights_collection
+
 
 @dag(
     dag_id='dst_airlines_prepare_flights_weather_data',
@@ -135,7 +136,7 @@ def taskflow():
         
         flights = lufthansa_api_flights.fetch_departing_flights_till_midnight(airport_iata=airport_iata, headers=headers)
 
-        flights_collection = _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = mongodb_db_name, mongodb_host = mongodb_host, mongodb_port = mongodb_port)
+        flights_collection = mongodb.get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = mongodb_db_name, mongodb_host = mongodb_host, mongodb_port = mongodb_port)
 
         logger.info(f"Starting the storage of the data into the MongoDB collection.")
         mongodb.add_flight_dict(flights, flights_collection)
@@ -152,7 +153,7 @@ def taskflow():
         Returns:
             None
         """
-        flights_collection = _get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = mongodb_db_name, mongodb_host = mongodb_host, mongodb_port = mongodb_port)
+        flights_collection = mongodb.get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = mongodb_db_name, mongodb_host = mongodb_host, mongodb_port = mongodb_port)
 
         raw_flights = flights_collection.find()
 

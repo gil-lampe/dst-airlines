@@ -9,6 +9,41 @@ import json
 
 logger = logging.getLogger(__name__)
 
+
+def get_collection_from_mongodb(mongodb_username, mongodb_password, collection_name = "FlightStatusResource", mongodb_db_name = "DST_AIRLINES", mongodb_host = "localhost", mongodb_port = 27017) -> Collection:
+    """
+    Connect to MongoDB and retrieves a specified collection. If the collection does not exist, a new one is created.
+
+    Args:
+        mongodb_username (str): The username for MongoDB authentication.
+        mongodb_password (str): The password for MongoDB authentication.
+        collection_name (str): The name of the MongoDB collection to retrieve or create. Default is 'FlightStatusResource'.
+        mongodb_db_name (str): The name of the MongoDB database. Default is 'DST_AIRLINES'.
+        mongodb_host (str): The host address of MongoDB. Default is 'localhost'.
+        mongodb_port (int): The port number of MongoDB. Default is 27017.
+
+    Returns:
+        Collection: The MongoDB collection object.
+    """
+    logger.info(f"Starting the retrieving of the MongoDB collection at: {mongodb_db_name = } | {collection_name = }.")
+    mongo_client = MongoClient(
+            host = mongodb_host,
+            port = mongodb_port,
+            username = mongodb_username,
+            password = mongodb_password
+        )
+
+    database = mongo_client[mongodb_db_name]
+
+    if collection_name in database.list_collection_names():
+        collection = database[collection_name]
+    else:
+        collection = database.create_collection(collection_name)
+    
+    logger.info(f"Retrieving of the MongoDB collection finalized.")
+    return collection
+
+
 def create_users(mongo_client: MongoClient, database_name: str, user_list: List[str], role: str = "readWrite") -> None:
     """Tries to create users listed in "user_list" with the given "role" in the MongoDB database named "database_name" from the MongoDB mongo_client, it will handle the issue if the user already exists without failing
 
@@ -125,32 +160,3 @@ def add_flight_files(mongo_client: MongoClient, db_name: str, collection_name: s
         logger.info(f"Launch of the file {flights_path} insersion into the the '{collection_name}' collection of the '{db_name}' database.")
 
         add_flight_dict(flights, flights_collection, force_test_all=force_test_all)
-        
-        # # Sélection des données contenues dans la clé "FlightStatusResource"
-        # flight_data = flights["data"]
-        # flight_status_resources = [data["FlightStatusResource"] for data in flight_data]
-
-        # # Mise en place du test d'existence pour éviter l'intégralité du fichier s'il a déjà été inséré dans la collection
-        # existence_count = 0
-        # existence_max_count = 5
-
-        # # Pour chacun des objets "FlightStatusResource"...
-        # for flight_status_resource in flight_status_resources:
-
-        #     # Vérification de son existence au sein de la collection sinon, ajout, si oui incrémentation du comptage
-        #     # Si le comptage atteint existence_max_count = 5, passage au fichier suivant
-        #     existence_test = flights_collection.find_one(flight_status_resource)
-
-        #     if existence_test == None:
-        #         flights_collection.insert_one(flight_status_resource)
-        #     elif existence_count >= existence_max_count and not force_test_all:
-        #         break            
-        #     else:
-        #         existence_count +=1
-
-        # # Si le comptage atteint existence_max_count = 5, traçage
-        # if existence_count >= existence_max_count and not force_test_all:
-        #     logger.info(f"At least {existence_max_count} documents of '{flights_path}' already exist in the '{collection_name}' collection of the '{db_name}' database, moved to the next file.")
-        #     continue
-        
-        # logger.info(f"FlightStatusResource documents of '{flights_path}' added in the '{collection_name}' collection of the '{db_name}' database.")
