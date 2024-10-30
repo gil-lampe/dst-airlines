@@ -29,7 +29,7 @@ airflow_password = os.getenv("AIRFLOW_APIUSER_PASSWORD")
 
 airflow_hostname = "airflow-webserver"
 airflow_port = "8080"
-dag_id = "predict_delay"
+dag_id = "dst_airlines_predict_delay"
 prediction_task_id = "predict_delay"
 prediction_xcom_key = "prediction"
 

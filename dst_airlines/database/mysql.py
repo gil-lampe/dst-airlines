@@ -39,7 +39,6 @@ def upload_data_in_mysql(data: pd.DataFrame | pd.Series, table_name: str, sql_us
         data (pd.DataFrame | pd.Series): Data to be inserted into the MySQL table
         table (str): Name of the MySQL table
         sql_user (str): Username to be used to connect to the MySQL database
-    
         sql_password (str): Password
         insert_existing_row (bool, optional): Insert rows which already exist in the database (True / False). Defaults to "False" - i.e., already existing rows are not inserted.
         if_exists (str, optional): Method to use if the table already exists, see `DataFrame.to_sql()` for more details. Defaults to "append".
@@ -65,17 +64,23 @@ def upload_data_in_mysql(data: pd.DataFrame | pd.Series, table_name: str, sql_us
         new_data = data.copy()
 
     # Si la table existe, ajout des nouvelles lignes uniquement, sinon création de la table et ajout des données
-    if table_name in table_names:
+    if (table_name in table_names) and (if_exists == "append"):
         logger.info(f"{table_name = } is found in the {sql_database = }, appending new rows only into the table.")
         
         if not insert_existing_rows: 
             # Récupération des données existantes
             existing_data = pd.read_sql(f"SELECT * FROM {table_name}", con=engine)
+            logger.info(f"Shape of existing data within the database: {existing_data.shape}")
+            logger.info(f"{existing_data.columns.to_list()} vs. {new_data.columns.to_list()}")
 
             # Sélection des nouvelles données à ajouter uniquement
-            new_data = new_data.merge(existing_data, on=list(new_data.columns), how='left', indicator=True)
+            new_data = new_data.merge(existing_data, on=new_data.columns.to_list(), how='left', indicator=True)
+            logger.info(f"Shape of the new data after merging: {new_data.shape}")
             new_data = new_data[new_data['_merge'] == 'left_only'].drop(columns=['_merge'])
-        
+            logger.info(f"Shape of the new data after merging and selecting only non existing rows: {new_data.shape}")
+            
+    elif (table_name in table_names) and if_exists != "append":
+        logger.info(f"{table_name = } is found in the {sql_database = }, application of the option '{if_exists}'.")    
     else:
         logger.info(f"{table_name = } not found in the {sql_database = }, creating the table {table_name = } and inserting data into it.")
     
