@@ -4,100 +4,90 @@
     <img src="https://img.shields.io/badge/CCDS-Project%20template-328F97?logo=cookiecutter" />
 </a>
 
-Predict airplane flight delays based on data collected from Lufthansa API among else
+Predict airplane flight delays based on data collected from [Lufthansa API](https://developer.lufthansa.com/page), weather forecasts from [Open Meteo](https://open-meteo.com/) and external airport data.
 
 ## Project Organization
-  
+
+Main folder organisation of the project
+
 ```
-├── LICENSE            <- Open-source license if one is chosen
-├── Makefile           <- Makefile with convenience commands like `make data` or `make train`
-├── README.md          <- The top-level README for developers using this project.
-├── data
-│   ├── external       <- Data from third party sources.
-│   ├── interim        <- Intermediate data that has been transformed.
-│   ├── processed      <- The final, canonical data sets for modeling.
-│   └── raw            <- The original, immutable data dump.
-│
-├── docs               <- A default mkdocs project; see mkdocs.org for details
-│
-├── models             <- Trained and serialized models, model predictions, or model summaries
-│
-├── notebooks          <- Jupyter notebooks. Naming convention is a number (for ordering),
-│                         the creator's initials, and a short `-` delimited description, e.g.
-│                         `1.0-jqp-initial-data-exploration`.
-│
-├── pyproject.toml     <- Project configuration file with package metadata for dst_airlines
-│                         and configuration for tools like black
-│
-├── references         <- Data dictionaries, manuals, and all other explanatory materials.
-│
-├── reports            <- Generated analysis as HTML, PDF, LaTeX, etc.
-│   └── figures        <- Generated graphics and figures to be used in reporting
-│
-├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-│                         generated with `pip freeze > requirements.txt`
-│
-├── setup.cfg          <- Configuration file for flake8
-│
-└── dst_airlines                <- Source code for use in this project.
-    │
-    ├── __init__.py    <- Makes dst_airlines a Python module
-    │
-    ├── data           <- Scripts to download or generate data
-    │   └── make_dataset.py
-    │
-    ├── features       <- Scripts to turn raw data into features for modeling
-    │   └── build_features.py
-    │
-    ├── models         <- Scripts to train models and then use trained models to make
-    │   │                 predictions
-    │   ├── predict_model.py
-    │   └── train_model.py
-    │
-    └── visualization  <- Scripts to create exploratory and results oriented visualizations
-        └── visualize.py
+├── kubernetes                  # Kubernetes configuration files for deploying the application
+│   ├── fastapi                 # Kubernetes manifests for the FastAPI application
+│   │   └── templates           # Templates for Kubernetes FastAPI deployments and configurations
+│   ├── mysql                   # Kubernetes manifests for the MySQL database service
+│   │   └── templates           # Templates for MySQL Kubernetes deployments and configurations
+│   ├── airflow                 # Kubernetes manifests for deploying Apache Airflow
+│   ├── mongo-DB                # Kubernetes manifests for the MongoDB database service
+│   │   └── templates           # Templates for MongoDB Kubernetes deployments and configurations
+│   └── prometheus_grafana      # Kubernetes manifests for Prometheus and Grafana monitoring tools
+├── fastapi                     # FastAPI application source code and configurations
+│   └── app                     # FastAPI application source files
+├── notebooks                   # Jupyter notebooks for data exploration and analysis
+├── databases_compose           # Docker Compose configuration for local database services
+├── .github                     # GitHub configuration for CI/CD workflows
+│   ├── workflows               # GitHub Actions workflows for CI/CD automation
+│   └── archive                 # Archive for old or unused GitHub workflows
+├── logs                        # Directory for storing application and system logs
+├── env                         # Environment configuration files for different deployment stages
+├── airflow                     # Configuration and data for the Airflow ETL pipeline
+│   ├── config                  # Airflow configuration files
+│   ├── logs                    # Airflow log files
+│   ├── plugins                 # Custom Airflow plugins for ETL workflows
+│   ├── dags                    # Directory containing Airflow DAGs (Directed Acyclic Graphs)
+│   ├── raw_files               # Raw data files used in Airflow ETL processing
+│   └── clean_data              # Directory for storing processed and cleaned data files
+├── dst_airlines                # Internal project package for data processing and modeling
+│   ├── modeling                # Machine learning and statistical modeling modules
+│   ├── logging                 # Logging configurations and utilities for the project
+│   ├── data                    # Data handling and manipulation modules
+│   └── database                # Database connection and interaction modules
+├── crontab_scripts             # Scripts scheduled by cron for automated tasks
+└── data                        # Project data storage directory with various data stages
+    ├── 1_raw                   # Raw, original, and unprocessed data
+    ├── 2_interim               # Intermediate data files, transformed but not final
+    ├── 3_processed             # Fully processed and ready-to-use data files
+    └── 4_external              # Data from third-party or external sources
+
 ```
 
 --------
 
-## Ennoncé
+## Objectives
 
-Le projet AIRLINES vous a été attribué, vous trouverez la fiche projet ici: [CLIQUEZ ICI](https://docs.google.com/document/d/1XyT7ePkgoMPAu8jf4q3R88R33dXrm_NwXfh5Px-redo/edit).
+This project proposes an application predicting in real-time potential delay of fights taking of from Frankfurt airport.
 
-Etapes : 
-> Pour information, ces étapes sont pensées pour que votre projet se passe au mieux, c’est-à-dire sans problème de dernière minute et avec un rendu final à la hauteur de vos capacités.
+It was developed as the final project of my DataScientest Bootcamp.
 
-- **Étape 0 / Cadrage (Notre première réunion)** : Semaine du 20 Juillet
-  - Introduction de chaque membre de l'équipe
-  - Explication du cadre du projet (les différentes étapes)
-- **Étape 1 / Découverte des sources de données disponibles** : Deadline Début Sprint 4 (30 Juillet)
-  - Définir le contexte et le périmètre du projet.
-  - Prise en main des différentes sources de données. Il vous faudra explorer les APIs et les pages webs.
-  - Livrable attendu: Vous devez fournir un rapport expliquant les différentes sources de données accompagnées d'exemples de données collectées.
-- **Étape 2 / Organisation des données** : Deadline MC 4 (08 Aout)
-  - Il s'agira de la partie la plus importante de votre projet où vous ferez le cœur du métier de Data Engineer.
-  - On vous demande d'organiser les données via différentes bases de données :
-    - Relationnelle
-    - NoSQL
-  - Il faudra penser à l'architecture des données, notamment comment relier les différentes données entre elles.
-  - Livrable attendu : Tout document expliquant l'architecture choisie (Diagramme UML)
-- **Étape 3 / Consommation des données** : Deadline Mi sprint 5 (27 Aout)
-  - Une fois vos données organisées, il faut les consommer, ce n'est pas le rôle initial d'un Data Engineer, mais pour que la pipeline des données soit complète, vous devez avoir cette partie.
-  - Il sera attendu de mettre en place un algorithme de Machine Learning qui répondra à votre problématique.
-- **Étape 4 / Déploiement** : Deadline Mi Sprint 7 (12 Septembre)
-  - Création d'une API du modèle de Machine Learning et/ou de la base de données
-  - Réaliser des tests unitaires sur votre API
-  - Conteneuriser cette API via Docker et les bases de données
-  - Mesurer la dérive des données
-- **Étape 5 / Automatisation & Monitoring**: Deadline Fin sprint 9 (03 Octobre)
-  - Automatiser les différentes précédentes étapes pour que l'application soit fonctionnel en continu
-  - Mettez en place une pipeline CI pour mettre à jour efficacement votre application
-  - Monitorer l'application en production
-- **Étape 6 / Démonstration de l'application + Soutenance (20 minutes de présentation + 10 minutes de question)** : semaine du 04 Octobre
-  - Vulgariser le déroulement de votre projet
-  - Expliquer l'architecture choisie lors de l'organisation des données
-  - Montrer que l'application est fonctionnelle
-  - Il ne sera pas attendu de parler en détail de la section consommation des données
+It has the following infrastructure:
+- Deployed on Kubernetes using custom Docker images
+- Exposed via FastAPI
+- Orchestrated by Airflow, enabling to: 
+  - collect and store data from APIs
+  - train three ML models and select the best performing one
+  - make prediction when called internally by the FastAPI "front"
+- Processing data via an in-house Python package, installed on the Airflow worker image
+- Storing data into a:
+  - MongoDB database (for raw, unstructured flight data)
+  - MySQL database (for structured flight, weather forecast and airport data)
 
-Précisions : 
-- Il n'y a pas d'attente spécifique concernant le format et contenu des rapports
+Security was as much as possible taken into consideration by:
+- Deploying a OAuth2.0 authentication mechanism on FastAPI
+- Securing secrets while still sharing template to ease appropriation by ensuring their are not synched on GitHub and by relying on GitGuardian
+
+## Project deployment
+
+To deploy the project:
+1. Use the provided templates to generate the corresponding files - ensure coherence between the override.yaml and the secret.yaml: 
+   1. ```override_template.yaml``` in ```kubernetes/airflow```
+   2. ```secret_template.yaml``` in ```kubernetes/mongodb or mysql``` (```secret.yaml``` are to be stored in the corresponding ```template``` folder)
+2. Deploy the Kubernetes infrastructure via the ```kubernetes/deploy.sh``` script
+3. Expose the Airflow and the FastAPI ports to enable interaction:
+   1. Airflow: ```kubectl port-forward svc/airflow-webserver 8080:8080 --namespace airlines```
+   2. FastAPI: ```kubectl port-forward svc/fastapi-service 8000:80 -n airlines```
+4. Launch the DAGs in the following order: 
+   1. structure airport data (natively stored into the Docker image - it is not ideal as it would be preferable to collect them from a official source)
+   2. collect from API and structure flight and weather forecasts data (be sure to have created a key on the Lufthansa API (see link above) and verify it's working)
+   3. train model on structured data
+5. Request the API to get a prediction for a flight departing from Frankfurt (note that the Lufthansa public API only expose data for the coming week)
+
+The infrastructure can be turned down with the ```kubernetes/uninstall.sh``` script

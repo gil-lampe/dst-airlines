@@ -4,6 +4,25 @@ import pandas as pd
 
 logger = getLogger(__name__)
 
+def get_coordinates(airport_code: str, airports: pd.DataFrame):
+    """
+    Retrieve the latitude and longitude of a specified airport from the DataFrame.
+
+    Args:
+        airport_code (str): The 3-letter IATA airport code.
+        airports (pd.DataFrame): DataFrame containing airport data.
+
+    Returns:
+        Tuple[float, float]: Latitude and longitude of the specified airport.
+    """
+    airport = airports[airports['iata_code'] == airport_code]
+    if not airport.empty:
+        latitude = airport.iloc[0]['latitude_deg']
+        longitude = airport.iloc[0]['longitude_deg']
+        return latitude, longitude
+    else:
+        return None, None
+
 
 def generate_clean_airport_data(airport_file_path: str=None) -> pd.DataFrame:
     """Generate clean airport data from the provided file path 

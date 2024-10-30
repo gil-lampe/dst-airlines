@@ -1,5 +1,5 @@
 replicaCount: 1
-image: glampe/dst_airlines_fastapi:latest
+image: glampe/dst_airlines_fastapi:0.1.4
 service:
   name: fastapi-service
   port: 80

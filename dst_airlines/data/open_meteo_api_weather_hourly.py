@@ -24,7 +24,7 @@ def fetch_weather_data(airport_codes: List[str], latitudes: List[str], longitude
         airport_codes (List[str]): List of the IATA airport codes (only used to add this information in the returned DataFrame, not for the weather forecast collection)
         latitudes (List[str]): List of latitudes which will be coupled with the longitudes to indicate the coordinates where to collect weather forecasts
         longitudes (List[str]): List of longitudes which will be coupled with the longitudes to indicate the coordinates where to collect weather forecasts
-        times (List[str]): List of times when to collect weather forecasts (format: "YYYY-MM-DDTHH:mm" e.g., "2024-09-30T14:25")
+        times (List[str]): List of times in UTC when to collect weather forecasts (format: "YYYY-MM-DDTHH:mm" e.g., "2024-09-30T14:25")
         manage_minutely_limite (bool, optional): Boolean to indicates if the function should wait to reset the minutely limit (True = wait / False = raise error). Defaults to True.
         manage_hourly_limite (bool, optional): Boolean to indicates if the function should wait to reset the hourly limit (True = wait / False = raise error). Defaults to True.
 

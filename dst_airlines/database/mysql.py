@@ -25,13 +25,13 @@ def get_tables(table_names: list[str], sql_user: str, sql_password: str, sql_hos
     connection_string = f"mysql+pymysql://{sql_user}:{sql_password}@{sql_host}:{sql_port}/{sql_database}"
     engine = create_engine(connection_string)
 
-    dataframes = [dataframes.append(pd.read_sql_table(table_name=table_name, con=engine)) for table_name in table_names]
+    dataframes = [pd.read_sql_table(table_name=table_name, con=engine) for table_name in table_names]
 
     logger.info(f"Data download form the {table_names = } finalized.")
     return dataframes
 
 
-def upload_data_in_mysql(data: pd.DataFrame, table_name: str, sql_user: str, sql_password: str, if_exists: str="append", sql_host: str="localhost", sql_port: str="3306", sql_database: str="DST_AIRLINES") -> None:
+def upload_data_in_mysql(data: pd.DataFrame | pd.Series, table_name: str, sql_user: str, sql_password: str, if_exists: str="append", sql_host: str="localhost", sql_port: str="3306", sql_database: str="DST_AIRLINES") -> None:
     """Upload provided data into the named table from the MySQL database whose detailed are provided, 
     will either add only new rows of the data into the table if it exists or create the table and insert data into it if it does not already exist
 
@@ -59,9 +59,14 @@ def upload_data_in_mysql(data: pd.DataFrame, table_name: str, sql_user: str, sql
     if table_name in table_names:
         logger.info(f"{table_name = } is found in the {sql_database = }, appending new rows only into the table.")
 
+        # Conversion en DataFrame si les données sont de type Series
+        if isinstance(data, pd.Series):
+            data = data.to_frame('0')
+            data.columns.astype(str)
+        
         # Récupération des données existantes
         existing_data = pd.read_sql(f"SELECT * FROM {table_name}", con=engine)
-        
+
         # Sélection des nouvelles données à ajouter uniquement
         new_data = data.merge(existing_data, on=list(data.columns), how='left', indicator=True)
         new_data = new_data[new_data['_merge'] == 'left_only'].drop(columns=['_merge'])

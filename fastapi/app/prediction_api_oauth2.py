@@ -42,6 +42,7 @@ responses = {
 logger = getLogger(__name__)
 basicConfig(level=INFO)
 
+# NOTE: That should be stored in a dedicated and secured database
 fake_users_db = {
     "johndoe": {
         "username": "johndoe",
@@ -111,11 +112,11 @@ class PredictionRequest(BaseModel):
     Args:
 
         arrival_iata_code (str): 3-letter IATA code of the arrival airport
-        scheduled_departure_utc_time (str): schedule departure time in UTC (format : YYYY-MM-DDThh:mmZ e.g., 2024-09-30T03:00Z)
+        scheduled_departure_local_time (str): schedule departure time in local time (format : YYYY-MM-DDTHH:mm e.g., 2024-09-30T03:00)
         task_uuid (UUID): Automatically generated Airflow task UUID
     """
     arrival_iata_code: str
-    scheduled_departure_utc_time: str
+    scheduled_departure_local_time: str
     task_uuid: UUID = Field(default_factory=uuid4)
 
 
@@ -328,12 +329,12 @@ async def post_predict_flight_delay(request: PredictionRequest, current_user: An
     credentials = f"{airflow_username}:{airflow_password}"
 
     headers = {"Content-Type": "application/json", "Authorization": "Basic " + base64.b64encode(credentials.encode()).decode("utf-8")}
-    data = {"dag_run_id": str(request.task_uuid), "conf": {"arrival_iata_code": request.arrival_iata_code, "scheduled_departure_utc_time": request.scheduled_departure_utc_time}}
+    data = {"dag_run_id": str(request.task_uuid), "conf": {"arrival_iata_code": request.arrival_iata_code, "scheduled_departure_local_time": request.scheduled_departure_local_time}}
     logger.info(f"Setup the url as {url = }.")
 
     try:
         async with aiohttp.ClientSession() as session:
-            logger.info(f"Request to be sent to the {url = } with the following data : dag_run_id = {str(request.task_uuid)} | {request.arrival_iata_code = } | {request.scheduled_departure_utc_time = }.")
+            logger.info(f"Request to be sent to the {url = } with the following data : dag_run_id = {str(request.task_uuid)} | {request.arrival_iata_code = } | {request.scheduled_departure_local_time = }.")
             async with session.post(url, headers=headers, json=data) as response:
                 logger.info(f"Request sent to the {url = } to trigger the DAG ({dag_id = }), waiting for the response.")
                 response_data = await _handle_airflow_api_response(response)

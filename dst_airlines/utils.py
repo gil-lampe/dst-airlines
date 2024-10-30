@@ -10,7 +10,8 @@ import logging.handlers
 import os
 from .logging.logging_setup import setup_logging
 from typing import List
-
+from datetime import datetime
+import pytz
 
 logger = logging.getLogger(__name__)
 
@@ -220,3 +221,23 @@ def get_files_in_folder(folder_path: str) -> List[str]:
     """
     files = [file for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
     return files
+
+def convert_timezone_date(date: str, from_timezone: str, to_timezone: str) -> str:
+    """Convert a date from a timezone (e.g., "Europe/Berlin") to another timezone (e.g., "UTC")
+
+    Args:
+        date (str): date at the "from_timezone" timezone (format YYYY-MM-DDTHH:mm)
+        from_timezone (str): Timezone of the provided date
+        to_timezone (str): Target timezone
+
+    Returns:
+        str: Date converted to the target timezone
+    """
+    input_timezone = pytz.timezone(from_timezone)
+    output_timezone = pytz.timezone(to_timezone)
+
+    input_date = input_timezone.localize(datetime.strptime(date, "%Y-%m-%dT%H:%M"))
+
+    output_date = input_date.astimezone(output_timezone)
+
+    return output_date.strftime("%Y-%m-%dT%H:%M")

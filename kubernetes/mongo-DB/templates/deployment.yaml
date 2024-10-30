@@ -25,7 +25,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: {{ .Release.Name }}-secret-{{ .Release.Namespace }}
-                  key: mongodbUsername
+                  key: rootusername
             - name: MONGO_INITDB_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
