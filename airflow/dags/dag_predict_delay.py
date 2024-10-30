@@ -54,7 +54,7 @@ def taskflow():
 
         url = lufthansa_api_flights.build_flight_url(departure_date_local=departure_date_local, departure_airport_iata = "FRA", arrival_airport_iata=arrival_airport_iata)
 
-        flights = lufthansa_api_flights.fetch_flights(url, headers)
+        flights = lufthansa_api_flights.fetch_flights(url=url, headers=headers)
 
         flights_structured = lufthansa_api_flights.structure_flights(flights, "flightstatus")
 

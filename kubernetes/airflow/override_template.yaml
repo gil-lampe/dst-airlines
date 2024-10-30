@@ -1,7 +1,7 @@
 images:
   airflow:
     repository: "glampe/dst_airlines_custom_airflow"
-    tag: "latest"
+    tag: "0.1.6"
 
 dags:
   persistence:
@@ -10,9 +10,31 @@ dags:
   gitSync:
     enabled: true
     repo: "git@github.com:gil-lampe/dst-airlines.git"
-    branch: "main"
-    subPath: "./airflow/dags/"
+    branch: "v1"
+    subPath: "airflow/dags"
     sshKeySecret: "airflow-ssh-secret"
+
+createUserJob:
+  command:
+    - /bin/sh
+    - -c
+    - |-
+      airflow users create -r "{{ .Values.webserver.defaultUser.role }}" -u "{{ .Values.webserver.defaultUser.username }}" -e "{{ .Values.webserver.defaultUser.email }}" -f "{{ .Values.webserver.defaultUser.firstName }}" -l "{{ .Values.webserver.defaultUser.lastName }}" -p "{{ .Values.webserver.defaultUser.password }}";
+      airflow users create "$@"
+    - --
+  args:
+    - -r
+    - "Op"
+    - -u
+    - "" # Add username here
+    - -e
+    - "" # Add email address here
+    - -f
+    - "" # Add firstname here
+    - -l
+    - "" # Add lastname here 
+    - -p
+    - "" # Add clear password here
 
 logs:
   persistence:
@@ -30,24 +52,26 @@ airflow:
       role: "Op"
 
 extraSecrets:
-# Add your airflow-ssh-secret 
+# Add your airflow-ssh-secret (base64 encrypted)
   airflow-ssh-secret:
     data: |
       gitSshKey: ''
-# Add your Lufthansa API client id 
+# Add your Lufthansa API client id (base64 encrypted)
   lufthansa-client-id:
     data: |
       CLIENT_ID: ''
-# Add your Lufthansa API secret 
+# Add your Lufthansa API secret (base64 encrypted)
   lufthansa-client-secret:
     data: |
       CLIENT_SECRET: ''
+# Add your MongoDB root password (base64 encrypted) - ensure it's the same as the one in the corresponding MongoDB secret
   mongodb-root-password:
     data: |
-      MONGODB_ROOT_PASSWORD: 'cGFzc3dvcmQxMjM='
+      MONGODB_ROOT_PASSWORD: ''
+# Add your MySQL root password (base64 encrypted) - ensure it's the same as the one in the corresponding MySQL secret
   mysql-root-password:
     data: |
-      MYSQL_ROOT_PASSWORD: 'cm9vdHBhc3N3b3JkMTIz'
+      MYSQL_ROOT_PASSWORD: ''
 
 secret:
   - envName: "CLIENT_ID"

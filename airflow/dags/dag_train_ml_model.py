@@ -142,10 +142,10 @@ def taskflow():
         flights_weather_forecasts = prepare_data.merge_flights_and_weather(flights, weather_forecasts)
 
         features = prepare_data.select_feature_columns(flights_weather_forecasts)
-        mysql.upload_data_in_mysql(data=features, table_name="features", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
+        mysql.upload_data_in_mysql(data=features, table_name="features_1", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
 
         target = prepare_data.compute_target_delay_in_minutes(flights_weather_forecasts)
-        mysql.upload_data_in_mysql(data=target, table_name="target", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
+        mysql.upload_data_in_mysql(data=target, table_name="target_1", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
         # upload_data_in_mysql(data=target, table_name="target", sql_user=sql_user, sql_password=sql_password, sql_host=sql_host, sql_port=sql_port, sql_database=sql_database)
 
     @task()
