@@ -6,9 +6,7 @@
 
 Predict airplane flight delays based on data collected from [Lufthansa API](https://developer.lufthansa.com/page), weather forecasts from [Open Meteo](https://open-meteo.com/) and external airport data.
 
-## Project Organization
-
-Main folder organisation of the project
+## Project structure
 
 ```
 ├── kubernetes                  # Kubernetes configuration files for deploying the application
@@ -54,25 +52,26 @@ Main folder organisation of the project
 
 ## Objectives
 
-This project proposes an application predicting in real-time potential delay of fights taking of from Frankfurt airport.
+This project proposes an application predicting in real-time potential delay of fights taking off from Frankfurt airport.
 
 It was developed as the final project of my DataScientest Bootcamp.
 
 It has the following infrastructure:
-- Deployed on Kubernetes using custom Docker images
-- Exposed via FastAPI
-- Orchestrated by Airflow, enabling to: 
-  - collect and store data from APIs
+- Deployed on **Kubernetes** using custom Docker images (for Airflow and FastAPI)
+- Exposed via **FastAPI** 
+- Orchestrated by **Airflow**, enabling to: 
+  - collect, process and store data from APIs
   - train three ML models and select the best performing one
   - make prediction when called internally by the FastAPI "front"
-- Processing data via an in-house Python package, installed on the Airflow worker image
+- Processing data via an **in-house Python package**, installed on the Airflow image
 - Storing data into a:
-  - MongoDB database (for raw, unstructured flight data)
-  - MySQL database (for structured flight, weather forecast and airport data)
+  - **MongoDB** database (for raw, unstructured flight data)
+  - **MySQL** database (for structured flight, weather forecast and airport data)
 
-Security was as much as possible taken into consideration by:
-- Deploying a OAuth2.0 authentication mechanism on FastAPI
-- Securing secrets while still sharing template to ease appropriation by ensuring their are not synched on GitHub and by relying on GitGuardian
+While still being an aspect which can be improved, security was as much as possible taken into consideration by:
+- **FastAPI connection**: Deploying a OAuth2.0 authentication mechanism on FastAPI
+- **Isolation**: Leveraging Kubernetes native isolation and exposing only important components
+- **Secret management**: Securing secrets while still sharing template to ease appropriation by ensuring they are not synched on GitHub and by relying on GitGuardian
 
 ## Project deployment
 
@@ -88,6 +87,6 @@ To deploy the project:
    1. structure airport data (natively stored into the Docker image - it is not ideal as it would be preferable to collect them from a official source)
    2. collect from API and structure flight and weather forecasts data (be sure to have created a key on the Lufthansa API (see link above) and verify it's working)
    3. train model on structured data
-5. Request the API to get a prediction for a flight departing from Frankfurt (note that the Lufthansa public API only expose data for the coming week)
+5. Request the API to get a prediction for a flight departing from Frankfurt (note that the Lufthansa public API only expose data for the coming 5 days)
 
 The infrastructure can be turned down with the ```kubernetes/uninstall.sh``` script
